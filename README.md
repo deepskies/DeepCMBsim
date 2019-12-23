@@ -2,8 +2,8 @@
 
 To-Do:
 
-• Take healpy
+• Generate unlensed maps with NaMaster
 
-• generate realization of skies given power spectrum.
+• Generate lensing map with NaMaster
 
-• Lens skies using Lenspix.
+• Lens skies using QuickLens

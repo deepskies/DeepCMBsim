@@ -11,6 +11,8 @@ reso_arcmin = 5.0/nx*60
 dx = reso_arcmin/60.0*numpy.pi/180.0 #reso_rad
 pix        = ql.maps.pix(nx, dx)
 lmax = 2500
+
+tfac = numpy.sqrt((dx*dx) / (nx*nx))
 print("Finished setting parameters")
 
 cl_unl     = ql.spec.get_camb_scalcl(lmax=lmax)
@@ -25,12 +27,10 @@ print("Finished loading unlensed map")
 
 #loading fft of phi map
 phi_map_fft_raw = numpy.load("phi_map_fft.npy")
-phi_map_fft = ql.maps.rfft(nx,dx,fft=phi_map_fft_raw, ny=nx, dy=dx)
+phi_map_fft = ql.maps.rfft(nx,dx,fft=phi_map_fft_raw/tfac, ny=nx, dy=dx)
 print("Finished loading FFT of phi map")
 
 phi_map = phi_map_fft.get_rmap()
-numpy.save("phi_map_fft_ql_structure.npy", phi_map_fft.fft)
-exit()
 
 ell = numpy.arange(0, 191)
 ell2D = numpy.zeros((192,97))
@@ -39,7 +39,7 @@ for m, i in enumerate(ell):
 		ell2D[m,n]= numpy.sqrt(i**2+j**2)
 
 fac = 2.0/(ell2D*(ell2D+1.0))
-kappamapfft = ql.maps.rfft(pix.nx, pix.dx, fft=phi_map_fft_raw/fac)
+kappamapfft = ql.maps.rfft(pix.nx, pix.dx, fft=phi_map_fft_raw/fac/tfac)
 kappa = kappamapfft.get_rmap()
 print("Finished calculating kappa map")
 
@@ -70,4 +70,4 @@ plt.imshow(lensed_tqu.tmap, interpolation='None', cmap='gray')
 plt.colorbar()
 #plt.show()
 plt.savefig('192_lensed_map.png')
-
+print("Figures saved")

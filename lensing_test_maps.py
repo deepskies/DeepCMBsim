@@ -12,7 +12,7 @@ dx = reso_arcmin/60.0*numpy.pi/180.0 #reso_rad
 pix        = ql.maps.pix(nx, dx)
 lmax = 2500
 
-tfac = numpy.sqrt((dx*dx) / (nx*nx))
+tfac = numpy.sqrt((nx*nx) / (dx*dx))
 print("Finished setting parameters")
 
 cl_unl     = ql.spec.get_camb_scalcl(lmax=lmax)
@@ -51,23 +51,23 @@ plt.figure()
 plt.imshow(phi_map.map, interpolation='None', cmap='RdBu_r');
 plt.colorbar()
 #plt.show()
-plt.savefig('192_phi_map.png')
+plt.savefig('192_phi_map_no-tfac.png')
 
 plt.figure()
 plt.imshow(kappa.map, interpolation='None', cmap='RdBu_r'); #colorbar() 
 plt.colorbar()
 #plt.show()
-plt.savefig('192_kappa_map.png')
+plt.savefig('192_kappa_map_no-tfac.png')
 
 plt.figure()
 plt.imshow(tqu_unl.tmap, interpolation='None', cmap='gray')
 plt.colorbar()
 #plt.show()
-plt.savefig('192_unlensed_map.png')
+plt.savefig('192_unlensed_map_no-tfac.png')
 
 plt.figure()
 plt.imshow(lensed_tqu.tmap, interpolation='None', cmap='gray')
 plt.colorbar()
 #plt.show()
-plt.savefig('192_lensed_map.png')
+plt.savefig('192_lensed_map_no-tfac.png')
 print("Figures saved")

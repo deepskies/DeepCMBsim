@@ -4,6 +4,7 @@ sys.path.append("/home/samanthausman/quicklens/quicklens")
 import quicklens as ql
 import numpy
 import matplotlib.pyplot as plt
+import matplotlib
 
 print("Finished loading modules")
 nx = 192
@@ -48,6 +49,32 @@ print("Finished calculating kappa map")
 #lens
 lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_unl, phi_map_fft)
 print("Finished lensing map")
+
+plt.figure()
+plt.title("Ell2D")
+plt.imshow(ell2D, interpolation='None', cmap='magma');
+plt.colorbar()
+#plt.show()
+plt.savefig('ell2D.png')
+
+plt.figure()
+plt.title("Ell Factor")
+plt.imshow(fac, interpolation='None', cmap='inferno');
+plt.colorbar()
+#plt.show()
+plt.savefig('ell_factor.png')
+
+plt.figure()
+plt.title("Phi Map FFT")
+plt.imshow(abs(phi_map_fft_raw),norm=matplotlib.colors.LogNorm(), cmap="magma")
+plt.colorbar()
+plt.savefig("phi_map_fft.png")
+
+plt.figure()
+plt.title("Kappa Map FFT")
+plt.imshow(abs(phi_map_fft_raw/fac/tfac),norm=matplotlib.colors.LogNorm(), cmap="inferno")
+plt.colorbar()
+plt.savefig("kappa_map_fft.png")
 
 plt.figure()
 plt.title("Phi Map")

@@ -35,7 +35,8 @@ print("Finished loading FFT of phi map")
 
 phi_map = phi_map_fft.get_rmap()
 
-ell = numpy.arange(0, 191) * lstep
+#ell = numpy.arange(0, 192) * lstep
+ell = numpy.fft.fftfreq(192)*lstep
 ell2D = numpy.zeros((192,97))
 for m, i in enumerate(ell):
 	for n, j in enumerate(ell[:97]):

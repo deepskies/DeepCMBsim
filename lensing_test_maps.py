@@ -30,7 +30,7 @@ print("Finished loading unlensed map")
 
 #loading fft of phi map
 phi_map_fft_raw = numpy.load("phi_map_fft.npy")
-phi_map_fft = ql.maps.rfft(nx,dx,fft=phi_map_fft_raw/tfac, ny=nx, dy=dx)
+phi_map_fft = ql.maps.rfft(nx,dx, ny=nx, dy=dx, fft=phi_map_fft_raw/tfac)
 print("Finished loading FFT of phi map")
 
 phi_map = phi_map_fft.get_rmap()
@@ -42,14 +42,21 @@ for m, i in enumerate(ell):
 	for n, j in enumerate(ell[:97]):
 		ell2D[m,n]= numpy.sqrt(i**2+j**2)
 
-fac = 2.0/(ell2D*(ell2D+1.0))
-kappamapfft = ql.maps.rfft(pix.nx, pix.dx, fft=phi_map_fft_raw/fac/tfac)
+fac = (ell2D*(ell2D+1.0))/2
+kappamapfft = ql.maps.rfft(pix.nx, pix.dx, fft=phi_map_fft_raw*fac/tfac)
 kappa = kappamapfft.get_rmap()
 print("Finished calculating kappa map")
 
 #lens
 lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_unl, phi_map_fft)
 print("Finished lensing map")
+
+plt.figure()
+plt.title("Phi Map")
+plt.imshow(phi_map.map, interpolation='None', cmap='RdBu_r');
+plt.colorbar()
+#plt.show()
+plt.savefig('192_phi_map.png')
 
 plt.figure()
 plt.title("Ell2D")
@@ -73,15 +80,9 @@ plt.savefig("phi_map_fft.png")
 
 plt.figure()
 plt.title("Kappa Map FFT")
-plt.imshow(abs(phi_map_fft_raw/fac/tfac),norm=matplotlib.colors.LogNorm(), cmap="inferno")
+plt.imshow(abs(phi_map_fft_raw/fac/tfac), cmap="inferno", norm=matplotlib.colors.LogNorm())
 plt.colorbar()
 plt.savefig("kappa_map_fft.png")
-
-plt.figure()
-plt.title("Phi Map")
-plt.imshow(phi_map.map, interpolation='None', cmap='RdBu_r');
-#plt.show()
-plt.savefig('192_phi_map.png')
 
 plt.figure()
 plt.title("Kappa Map")

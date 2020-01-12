@@ -13,7 +13,7 @@ dx = reso_arcmin/60.0*numpy.pi/180.0 #reso_rad
 pix        = ql.maps.pix(nx, dx)
 lmax = numpy.pi / dx
 lstep = lmax*2/nx
-print(int(lmax))
+print(int(lstep))
 
 tfac = numpy.sqrt((nx*nx) / (dx*dx))
 print("Finished setting parameters")

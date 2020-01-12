@@ -31,7 +31,8 @@ kapmap = ql.maps.rmap(pix.nx, pix.dx, map=kappa)
 ell = np.arange(0, lmax+1)
 fac = 2.0/(ell*(ell+1.0))
 fac[0]=0.0
-phifft = kapmap.get_rfft()*fac
+kappa_map_fft = kapmap.get_rfft()
+phifft = kappa_map_fft*fac
 
 #lens
 lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_unl, phifft)
@@ -43,6 +44,17 @@ plt.colorbar()
 plt.savefig('kimmy_phi_map.png')
 
 plt.figure()
+plt.imshow(abs(kappa_map_fft.fft),interpolation='None', cmap='RdBu_r');
+plt.colorbar()
+plt.savefig("kimmy_kappa_map_fft.png")
+
+plt.figure()
+plt.imshow(abs(phifft.fft), interpolation='None', cmap='viridis'); #colorbar() 
+plt.colorbar()
+#plt.show()
+plt.savefig('kimmy_phi_map_fft.png')
+
+plt.figure()
 plt.imshow(kappa, interpolation='None', cmap='RdBu_r'); #colorbar() 
 plt.colorbar()
 #plt.show()
@@ -50,11 +62,11 @@ plt.savefig('kimmy_kappa_map.png')
 
 plt.figure()
 plt.imshow(tqu_unl.tmap, interpolation='None', cmap='gray')
-plt.show()
+#plt.show()
 plt.savefig('1119_check_unlensed.png')
 
 plt.figure()
 plt.imshow(lensed_tqu.tmap, interpolation='None', cmap='gray')
-plt.show()
+#plt.show()
 plt.savefig('1119_check_lensed.png')
 

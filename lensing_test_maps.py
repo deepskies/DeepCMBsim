@@ -29,7 +29,7 @@ tqu_unl.tmap = checker
 print("Finished loading unlensed map")
 
 #loading fft of phi map
-phi_map_fft_raw = numpy.load("phi_map_fft.npy")
+phi_map_fft_raw = numpy.load("phi_map_fft_0-mode.npy")
 phi_map_fft = ql.maps.rfft(nx,dx, ny=nx, dy=dx, fft=phi_map_fft_raw/tfac)
 print("Finished loading FFT of phi map")
 
@@ -44,6 +44,7 @@ for m, i in enumerate(ell):
 
 fac = (ell2D*(ell2D+1.0))/2
 kappamapfft = ql.maps.rfft(pix.nx, pix.dx, fft=phi_map_fft_raw*fac/tfac)
+#try get_ell
 kappa = kappamapfft.get_rmap()
 print("Finished calculating kappa map")
 
@@ -52,11 +53,13 @@ lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_unl, phi_map_fft)
 print("Finished lensing map")
 
 plt.figure()
-plt.title("Phi Map")
+plt.title("Phi Map, Null 0-mode")
 plt.imshow(phi_map.map, interpolation='None', cmap='RdBu_r');
 plt.colorbar()
+plt.xlabel("5 degrees")
+plt.ylabel("5 degrees")
 #plt.show()
-plt.savefig('192_phi_map.png')
+plt.savefig('192_phi_map_0-mode.png')
 
 plt.figure()
 plt.title("Ell2D")
@@ -85,11 +88,12 @@ plt.colorbar()
 plt.savefig("kappa_map_fft.png")
 
 plt.figure()
-plt.title("Kappa Map")
+plt.title("Kappa Map, Null 0-mode")
 plt.imshow(kappa.map, interpolation='None', cmap='RdBu_r'); #colorbar() 
 plt.colorbar()
 #plt.show()
-plt.savefig('192_kappa_map.png')
+plt.savefig('192_kappa_map_0-mode.png')
+
 
 plt.figure()
 plt.title("Unlensed Checkerboard Map")

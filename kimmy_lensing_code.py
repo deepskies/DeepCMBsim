@@ -41,32 +41,32 @@ plt.figure()
 plt.imshow(phifft.get_rmap().map, interpolation='None', cmap='RdBu_r'); #colorbar() 
 plt.colorbar()
 #plt.show()
-plt.savefig('kimmy_phi_map.png')
+plt.savefig('figures/kimmy_phi_map.png')
 
 plt.figure()
 plt.imshow(abs(kappa_map_fft.fft),interpolation='None', cmap='RdBu_r');
 plt.colorbar()
-plt.savefig("kimmy_kappa_map_fft.png")
+plt.savefig("figures/kimmy_kappa_map_fft.png")
 
 plt.figure()
 plt.imshow(abs(phifft.fft), interpolation='None', cmap='viridis'); #colorbar() 
 plt.colorbar()
 #plt.show()
-plt.savefig('kimmy_phi_map_fft.png')
+plt.savefig('figures/kimmy_phi_map_fft.png')
 
 plt.figure()
 plt.imshow(kappa, interpolation='None', cmap='RdBu_r'); #colorbar() 
 plt.colorbar()
 #plt.show()
-plt.savefig('kimmy_kappa_map.png')
+plt.savefig('figures/kimmy_kappa_map.png')
 
 plt.figure()
 plt.imshow(tqu_unl.tmap, interpolation='None', cmap='gray')
 #plt.show()
-plt.savefig('1119_check_unlensed.png')
+plt.savefig('figures/kimmy_checkerboard_unlensed.png')
 
 plt.figure()
 plt.imshow(lensed_tqu.tmap, interpolation='None', cmap='gray')
 #plt.show()
-plt.savefig('1119_check_lensed.png')
+plt.savefig('figures/kimmy_checkerboard_lensed.png')
 

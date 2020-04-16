@@ -27,9 +27,7 @@ pix = ql.maps.pix(nx, dx)
 print("Finished setting parameters")
 
 #Setting up data structure 
-cl_unl = ql.spec.get_camb_scalcl(lmax=int(lmax))
-teb_unl = ql.sims.tebfft(pix, cl_unl)
-tqu_unl = teb_unl.get_tqu()
+tqu_unl = ql.maps.tqumap(nx, dx)
 print("Finished setting up data structures")
 
 #Loading in T, Q & U maps 
@@ -39,6 +37,15 @@ tqu_unl.qmap = temperature_map[1]
 tqu_unl.umap = temperature_map[2]
 print("Finished loading unlensed map")
 
+#Getting unlensed E & B maps
+teb_unlensed = tqu_unl.get_teb() #I believe this should be the same as teb_unl
+unlensed_e_fft = ql.maps.rfft(nx, dx, fft=teb_unlensed.efft)
+unlensed_b_fft = ql.maps.rfft(nx, dx, fft=teb_unlensed.bfft)
+unlensed_e_map = unlensed_e_fft.get_rmap()
+unlensed_b_map = unlensed_b_fft.get_rmap()
+numpy.save("./unlensed_e_map", unlensed_e_map.map)
+numpy.save("./unlensed_b_map", unlensed_b_map.map)
+
 #Loading in the FFT of the phi map
 phi_map_fft_raw = numpy.load("test_phi_map_fft.npy")
 phi_map_fft = ql.maps.rfft(nx,dx, ny=nx, dy=dx, fft=phi_map_fft_raw*tfac)
@@ -47,16 +54,7 @@ print("Finished loading FFT of phi map")
 #Generating the phi map from the FFT
 phi_map = phi_map_fft.get_rmap()
 
-#Calculating an array to represent the l-modes in one direction
-ell = numpy.fft.fftfreq(192)*lstep
-
-#Calculating the l-modes in a 2D-array for converting the phi map to kappa map
-#(There is probably a more efficient way to do this but this was the way I thought of)
-ell2D = numpy.zeros((192,97))
-for m, i in enumerate(ell):
-	for n, j in enumerate(ell[:97]):
-		ell2D[m,n]= numpy.sqrt(i**2+j**2)
-
+#Getting l-modes for each pixel using built-in functionality
 #Setting the 0-mode to 1 so be don't get Runtime Errors later in the code
 ell2D = phi_map_fft.get_ell()
 ell2D[0,0]=1
@@ -65,8 +63,7 @@ ell2D[0,0]=1
 fac = (ell2D*(ell2D+1.0))/2
 
 #Calculating the kappa map using QuickLens structure
-kappa_map_fft = ql.maps.rfft(nx, dx, fft=phi_map_fft_raw*fac)
-#try get_ell
+kappa_map_fft = ql.maps.rfft(nx, dx, fft=phi_map_fft_raw*tfac*fac)
 
 #Converting kappa map FFT to the kappa map
 kappa = kappa_map_fft.get_rmap()
@@ -77,22 +74,58 @@ lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_unl, phi_map_fft)
 lensed_teb = lensed_tqu.get_teb()
 print("Finished lensing map")
 
+#Use rfft structure to get out E map
+e_fft = ql.maps.rfft(nx, dx, fft=lensed_teb.efft)
+e_map = e_fft.get_rmap()
+numpy.save("./lensed_e_map", e_map.map)
+
+#Use rfft structure to get out B map
+b_fft = ql.maps.rfft(nx, dx, fft=lensed_teb.bfft)
+b_map = b_fft.get_rmap()
+numpy.save("./lensed_b_map", b_map.map)
+
 #Plotting! Lots of Plotting!
+#Plotting the Ell map
+plt.figure()
+plt.title("L Map")
+plt.imshow(ell2D,norm=matplotlib.colors.LogNorm(), cmap="plasma", vmin = 10**2)
+plt.colorbar()
+plt.savefig("figures/L-modes.png")
+
 #Plotting the E map
 plt.figure()
-plt.title("Lensed E Map")
-plt.imshow(numpy.fft.irfft2(lensed_teb.efft),norm=matplotlib.colors.LogNorm(), cmap="plasma")
+plt.title("E Map")
+plt.imshow(e_map.map, cmap="bwr")
 plt.colorbar()
 plt.savefig("figures/my_lensed_e_map.png")
 
-numpy.save("E_map", numpy.fft.irfft2(lensed_teb.efft))
+#Plotting the B map
+plt.figure()
+plt.title("B Map")
+plt.imshow(b_map.map, cmap="bwr")
+plt.colorbar()
+plt.savefig("figures/my_lensed_b_map.png")
+
+#Plotting the E map
+plt.figure()
+plt.title("Unlensed E Map")
+plt.imshow(unlensed_e_map.map, cmap="bwr")
+plt.colorbar()
+plt.savefig("figures/my_unlensed_e_map.png")
+
+#Plotting the B map
+plt.figure()
+plt.title("Unlensed B Map")
+plt.imshow(unlensed_b_map.map, cmap="bwr")
+plt.colorbar()
+plt.savefig("figures/my_unlensed_b_map.png")
 
 #Plotting the phi map
 plt.figure()
 plt.title("Phi Map")
-plt.imshow(phi_map.map,norm=matplotlib.colors.LogNorm(), cmap="seismic")
+plt.imshow(phi_map.map, cmap="seismic")
 plt.colorbar()
-plt.savefig("figures/my_phi_map_fft.png")
+plt.savefig("figures/my_phi_map.png")
 
 #Plotting the FFT of the phi map
 plt.figure()
@@ -111,7 +144,7 @@ plt.savefig("figures/my_kappa_map_fft.png")
 #Plotting the kappa map
 plt.figure()
 plt.title("Kappa Map")
-plt.imshow(numpy.fft.irfft2(phi_map_fft_raw/fac/tfac), cmap="magma")
+plt.imshow(kappa.map, cmap="magma")
 plt.colorbar()
 plt.savefig("figures/my_192_kappa_map.png")
 

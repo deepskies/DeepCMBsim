@@ -24,22 +24,55 @@ from astropy.wcs import WCS
 from scipy.interpolate import interp1d
 
 #Defining functions
+def build_checkerboard(w, h) :
+      """
+      Function for building a checkerboard pattern.
+      This checkerboard can then be used for testing lensing functions.
+      """
+      re = np.r_[ w*[0,0,0,0,0,0,1,1,1,1,1,1] ]              # even-numbered rows
+      ro = np.r_[ w*[1,1,1,1,1,1,0,0,0,0,0,0] ]              # odd-numbered rows
+      return np.row_stack(h*(re,re,re,re,re,re,ro,ro,ro,ro,ro,ro))
 
-#Function to concatenate [0,0] to spectrum to account for zeroed-out l-mode for 0 and 1 modes
-#The simulation code, synfast_flat, interprets the first two numbers as the 0- and 1-mode.
-#Since our spectrum starts at the second mode, I set the amplitude for the 0-mode and 1-mode to 0.
+def map_parameters(pixels, degrees, projection="ZEA"):
+    """
+    Function for storing map parameters for the map generation.
+    """
+
+    #Calculating some parameters
+    reso = degrees/pixels 
+    reso_arcmin = reso*60
+    dx = reso*np.pi/180.0
+    
+    w = WCS(naxis=2)
+    
+    w.wcs.crpix = [pixels/2, pixels/2] #Center pixel X, Y
+    w.wcs.cdelt = np.array([-reso, reso])
+    w.wcs.crval = [0, 0] #Center coordinates RA, DEC at 0,0
+    w.wcs.ctype = ["RA---"+projection, "DEC--"+projection]
+    
+    flat_map_info = fm.FlatMapInfo(w, nx=int(pixels), ny=int(pixels), lx=degrees, ly=degrees)
+    
+    return flat_map_info
+
 def add_zeroed_modes(spectrum, l_array=False):
+    """
+        Function to concatenate [0,0] to spectrum to account for zeroed-out l-mode for 0 and 1 modes
+    The simulation code, synfast_flat, interprets the first two numbers as the 0- and 1-mode.
+    Since our spectrum starts at the second mode, I set the amplitude for the 0-mode and 1-mode to 0.
+    
+    """
     if l_array==False:
         concatenated_spectrum = np.concatenate(([0,0],spectrum))
     else:
         concatenated_spectrum = np.concatenate(([0,1],spectrum))
     return concatenated_spectrum
 
-#Function for loading in CMB spectrum, returns dictionary containing l-modes and spectra
 def load_cmb_spectra(location, fix_scaling=True, add_zeroed=True):
-    #Loading in pregenerated spectra using CAMB
-    #The file has l-modes plust the following spectra are respectively:
-    #Temperature-Temperature, E mode-E mode, Temperature-E mode cross spectrum, Phi-Phi, Phi-Temperature cross
+    """
+    Loading in pregenerated spectra using CAMB The file has l-modes plus the
+    following spectra are respectively: Temperature-Temperature, E mode-E mode,
+    Temperature-E mode cross spectrum, Phi-Phi, Phi-Temperature cross
+    """
     l_modes, clTTa, clEEa, clTEa, clPPa, clPTa = np.loadtxt("planck_2018_cl/base_plikHM_TTTEEE_lowl_lowE_lensing_scalCls.dat", unpack=True)
     
     #CAMB scales spectra, so we fix that before feeding it into the map generation code
@@ -71,8 +104,10 @@ def load_cmb_spectra(location, fix_scaling=True, add_zeroed=True):
         cmb_spectra = {"l modes":l_modes, "clTT":clTTa, "cleTE":clTEa, "clEE":clEEa, "clPP":clPPa, "clPT":clPTa}
     return cmb_spectra
     
-#Function for plotting spectrum
 def spectrum_plot(l_modes, spectrum, title):
+    """
+    Function for plotting spectrum
+    """
     fig = plt.figure()
     ax = plt.subplot(111)
     plt.plot(l_modes, spectrum, label=title)
@@ -86,8 +121,10 @@ def spectrum_plot(l_modes, spectrum, title):
     
     return fig
 
-#Function for plotting a 2D power spectrum or something in the frequency domain
 def frequency_domain_plot(input_map_fft, title, scaling, colorbar_label):
+    """
+    #Function for plotting a 2D power spectrum or something in the frequency domain
+    """
     fig = plt.figure()
     plt.imshow(np.log10(np.abs(input_map_fft)), vmin=scaling[0], vmax=scaling[1])
     plt.colorbar(label=colorbar_label)
@@ -95,9 +132,11 @@ def frequency_domain_plot(input_map_fft, title, scaling, colorbar_label):
     
     return fig
 
-#Function for plotting 2D FFT
 def calculate_and_plot_fft(input_map, title, real=False, scaling=[0,6], colorbar_label="Log of Map Strength"):
-    #This needs to be an rfft for the actual analysis and a complex fft for estimating spectra
+    """
+    Function for plotting 2D FFT
+    This needs to be an rfft for the actual analysis and a complex fft for estimating spectra
+    """
     if real:
         input_map_fft = np.fft.rfft2(input_map)
     else:
@@ -107,14 +146,19 @@ def calculate_and_plot_fft(input_map, title, real=False, scaling=[0,6], colorbar
 
     return fig
 
-#Function for making 2D Power Map
-def calculate_map_power_2D(input_map, tfac, real=False):
-    #FFT needs to be real for the analysis and complex estimating spectra
+def calculate_map_power_2D(input_map, fmi, real=False):
+    """
+    Function for making 2D Power Map
+    FFT needs to be real for the analysis and complex estimating spectra
+    """
     if real:
         input_map_fft = np.fft.rfft2(input_map)
     else:
         input_map_fft = np.fft.fft2(input_map)
     
+    #Calculate tfac (factor for converting from frequency to spacial domain and vice versa
+    tfac = fmi.lx * np.pi/(180.*fmi.nx**2)
+
     #Taking the conjugate of the phi map fft
     input_map_fft_conj = np.conj(input_map_fft)
     
@@ -125,16 +169,23 @@ def calculate_map_power_2D(input_map, tfac, real=False):
 
     return map_power_2D
 
-#Function for creating power spectrum plot
-#This function has two methods: one which involves summing over annuli to estimate the power in different l-modes
-#and a second method (which I took from João Caldeira) that uses a histogram function to weight bins of l-modes
-def calculate_power_spectrum(input_map, tfac, bin_num=80, pixels=192, lstep=72, method_histogram=False):
+def calculate_power_spectrum(input_map, fmi, bin_num=80, pixels=192, lstep=72, method_histogram=False):
+    """
+    Function for creating power spectrum plot. This function has two methods: one
+    which involves summing over annuli to estimate the power in different l-modes
+    and a second method (which I took from João Caldeira) that uses a histogram
+    function to weight bins of l-modes
+    """
+
+    #Calculate tfac (factor for converting from frequency to spacial domain and vice versa
+    tfac = fmi.lx * np.pi/(180.*fmi.nx**2)
+
     #Calculate the maximum achievable l-mode given map parameters
     peak_l = pixels/2*lstep
     
     #This is the first (and default) method of calculating the power spectrum:
     if method_histogram==False:
-        map_power_2D = calculate_map_power_2D(input_map, tfac, real=False)
+        map_power_2D = calculate_map_power_2D(input_map, fmi, real=False)
 
         #Dividing data into four quarters, rotating so lowest mode is in top left quarter
         quarter1 = map_power_2D[:int(pixels/2),:int(pixels/2)]
@@ -222,10 +273,11 @@ def calculate_power_spectrum(input_map, tfac, bin_num=80, pixels=192, lstep=72, 
     
     return bin_centers, spectra_est_avg_bins
 
-#Function to plot a single or multiple spectra
-#The spectra must be loaded with their own l-modes, you can not give a different number of l-modes and spectra
 def plot_spectra(l_modes, spectra, plot_title, plot_labels):
-    
+    """
+    Function to plot a single or multiple spectra The spectra must be loaded with
+    their own l-modes, you can not give a different number of l-modes and spectra
+    """    
     fig = plt.figure()
     
     #If there are multiple sets of l-modes, we plot them and their respective spectra
@@ -251,14 +303,17 @@ def plot_spectra(l_modes, spectra, plot_title, plot_labels):
     plt.ylabel("$C_{l}$")
     return fig
 
-#This function generates CMB maps.
-#The spectra are assumed to be from CAMB, with the numbers rescaled and zeroes added to the front
-#to account for CAMB beginning its spectra at l=2.
-#This function can make temperature-only maps, OR temperature-only maps with Q and U modes,
-#OR temperature-only maps with E and B modes, OR phi (gravitational deflection) maps only.
-
-#fmi is flat-map info. It is basically a class which contains information about themaps and is an imported module.
 def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps=False, TEB_maps=False, phi_map=False, start_seed = 0):
+    """
+    This function generates CMB maps.  The spectra are assumed to be from CAMB,
+    with the numbers rescaled and zeroes added to the front to account for CAMB
+    beginning its spectra at l=2.  This function can make temperature-only maps, OR
+    temperature-only maps with Q and U modes, OR temperature-only maps with E and B
+    modes, OR phi (gravitational deflection) maps only.  fmi is flat-map info. It
+    is basically a class which contains information about themaps and is an
+    imported module.
+    """
+    
     i=0
     
     #FIXME: I don't understand how to make the random seed work
@@ -268,29 +323,30 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
     #    random.seed()
         
     #random_num = random.getstate()[0]
-    
+        
     if sum([temp_only, TQU_maps, TEB_maps, phi_map])>1:
         print("You can only pick only one of these options: temperature-map only, TQU maps, TEB maps or phi_map.")
         return None
-    
+   
     #This part makes only temperature maps
     elif temp_only:
-        
+    
         #Creating an array to store all of the maps
         all_maps = np.zeros([num_maps,1,int(pixels),int(pixels)])
-        
+    
         #Loop to create all maps
         while i < num_maps:
             
             #Creating each individual map
-            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,0,0])
-                
+            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clTT"]],[0])
+
             #Saving map in index i of array
             all_maps[i] = one_map_set
-            
+
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
                 print(i,)
+            
             i+=1
         
     #This part makes temperature maps with their respective Q and U modes

@@ -22,6 +22,7 @@ import random
 import flatmaps as fm
 from astropy.wcs import WCS
 from scipy.interpolate import interp1d
+import random
 
 #Defining functions
 def build_checkerboard(w, h) :
@@ -303,7 +304,7 @@ def plot_spectra(l_modes, spectra, plot_title, plot_labels):
     plt.ylabel("$C_{l}$")
     return fig
 
-def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps=False, TEB_maps=False, phi_map=False, start_seed = 0):
+def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps=False, TEB_maps=False, phi_map=False, give_seeds=None):
     """
     This function generates CMB maps.  The spectra are assumed to be from CAMB,
     with the numbers rescaled and zeroes added to the front to account for CAMB
@@ -314,6 +315,11 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
     imported module.
     """
     
+    if give_seeds is not None:
+        input_seeds = give_seeds
+    else:
+        input_seeds = random.sample(range(0, 50000000), num_maps)
+
     i=0
     
     #FIXME: I don't understand how to make the random seed work
@@ -338,7 +344,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         while i < num_maps:
             
             #Creating each individual map
-            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clTT"]],[0])
+            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clTT"]],[0], seed=input_seeds[i])
 
             #Saving map in index i of array
             all_maps[i] = one_map_set
@@ -359,7 +365,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         while i < num_maps:
             
             #Creating *one set* of temperature maps plus its Q and U maps
-            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,2])
+            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,2],seed=input_seeds[i])
             
             #Saving all three maps in index i of array
             all_maps[i] = one_map_set
@@ -379,7 +385,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         while i < num_maps:
             
             #Creating *one set* of temperature maps plus its E and B maps
-            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,0,0])
+            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,0,0], seed=input_seeds[i])
             
             #Saving all three maps in index i of aray
             all_maps[i] = one_map_set
@@ -400,7 +406,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         while i < num_maps:
             
             #Creating one phi (gravitational deflection) map
-            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clPP"]],[0])
+            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clPP"]],[0], seed=input_seeds[i])
             
             #Saving map to index i of array
             all_maps[i] = one_map_set

@@ -59,6 +59,10 @@ lx, ly = efft_for_structure.get_lxly()
 ell2D = efft_for_structure.get_ell()
 print("Finished calculating l-modes")
 
+numpy.save("lx", lx)
+numpy.save("ly", ly)
+exit()
+
 #Calculating factor to convert from kappa to phi FFTs
 #Setting the 0-mode to 1 so be don't get Runtime Errors later in the code
 fac = (ell2D*(ell2D+1.0))/2

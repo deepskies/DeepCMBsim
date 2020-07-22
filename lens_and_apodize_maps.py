@@ -27,8 +27,8 @@ class tebmap(ql.maps.pix):
             [self.tmap, self.emap, self.bmap] = maps
 
         assert( (self.ny, self.nx) == self.tmap.shape )
-        assert( (self.ny, self.nx) == self.qmap.shape )
-        assert( (self.ny, self.nx) == self.umap.shape )
+        assert( (self.ny, self.nx) == self.emap.shape )
+        assert( (self.ny, self.nx) == self.bmap.shape )
 
     def copy(self):
         return tebmap( self.nx, self.dx,
@@ -71,7 +71,7 @@ class tebmap(ql.maps.pix):
                  super(tebmap, self).compatible(other) )
 
     def get_tqu(self):
-        """ return a tebfft object containing the fourier transform of the T,Q,U maps. """
+        """ return a tqumap object containing the fourier transform of the T,Q,U maps. """
 
         #Calculating FFT of E & B maps
         efft = self.emap.get_rfft()
@@ -99,10 +99,14 @@ def plot_map(skymap, title, colorscheme="viridis", save_loc="figures/", filename
      plt.imshow(skymap, cmap=colorscheme)
      plt.colorbar()
      if not filename:
+          print("Saving figure "+title+".png"+" in "+save_loc)
           plt.savefig(save_loc+title+".png")
      else:
+          print("Saving figure "+filename+" in "+save_loc)
           plt.savefig(save_loc+filename)
      return fig 
+
+#FIXME: write function convert from tqumap object tebmap object
 
 #Defining map parameters
 pixels = 192. #192 pixels on each side
@@ -117,9 +121,13 @@ tfac = dx/pixels #converts from pixels to radians
 pix = ql.maps.pix(nx, dx)
 print("Finished setting parameters")
 
+
 #Loading in E & B maps 
 temperature_map = numpy.load('all_unlensed_temperature_maps.npy')
 print("Finished loading unlensed map")
+
+#Testing class structure
+teb = tebmap(nx, dx, maps=temperature_map[0])
 
 #Loading in phi map FFTs
 phi_map_ffts = numpy.load('all_phi_map_ffts.npy')
@@ -144,6 +152,9 @@ lx, ly = efft_for_structure.get_lxly()
 ell2D = efft_for_structure.get_ell()
 print("Finished calculating l-modes")
 
+numpy.save("lx", lx)
+numpy.save("ly", ly)
+
 #Calculating factor to convert from kappa to phi FFTs
 #Setting the 0-mode to 1 so be don't get Runtime Errors later in the code
 fac = (ell2D*(ell2D+1.0))/2
@@ -154,7 +165,7 @@ tpi  = 2.*numpy.arctan2(lx, -ly)
 #Starting loop
 print("Entering loop")
 print("# of maps completed:")
-for i, mapz in enumerate(temperature_map):
+for i, mapz in enumerate(temperature_map[0:1]):
 
 	if numpy.mod(i,100)==0:
 		print i,
@@ -179,10 +190,10 @@ for i, mapz in enumerate(temperature_map):
 	tqu_maps = ql.maps.tqumap(nx, dx, maps=[numpy.zeros((nx, nx)), qmap_un, umap_un])
 
 	#Getting the T, E & B maps to get unlensed, apodized E map
-	teb = tqu_maps.get_teb()
+	teb_fft_structure = tqu_maps.get_teb()
 
 	#Getting apodized emap
-	efft_apod = ql.maps.rfft(nx, dx, fft=teb.efft)
+	efft_apod = ql.maps.rfft(nx, dx, fft=teb_fft_structure.efft)
 	emap_apod = efft_apod.get_rmap()
 
 	#Putting phi map FFT into QuickLens structure
@@ -209,9 +220,11 @@ for i, mapz in enumerate(temperature_map):
 	u_maps[i] = umap_lensed_apod
 	e_maps[i] = emap_apod.map
 
+
+
 #Plotting! Lots of Plotting!
 #Plotting the E map
-plot_map(emap.map, "Unlensed, Apodized E Map", colorscheme="plasma", filename="emap.png") 
+plot_map(teb.emap, "Class-Structure E Map", colorscheme="plasma") 
 
 exit()
 

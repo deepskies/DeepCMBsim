@@ -313,23 +313,29 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
     modes, OR phi (gravitational deflection) maps only.  fmi is flat-map info. It
     is basically a class which contains information about themaps and is an
     imported module.
-    """
-    
+    """   
+    #Checking if given seeds are valid 
     if give_seeds is not None:
-        input_seeds = give_seeds
+        #Are there the same number of seeds as maps?
+        if not (len(give_seeds)==num_maps):
+            print("You need to have the same number of seeds as maps.")
+            return
+
+        #Are all of the seeds integers?
+        elif sum([np.mod(give_seeds[i],1) for i in range(0,num_maps)])>0:
+            print("All seeds must be integers.")
+            return
+
+        #If all of these are good, set these as the input seeds
+        else:
+            input_seeds = give_seeds
+
+    #If no seeds are given, randomly generate some seeds
     else:
         input_seeds = random.sample(range(0, 50000000), num_maps)
 
-    i=0
-    
-    #FIXME: I don't understand how to make the random seed work
-    #if start_seed != 0:
-    #    random.seed(a=start_seed)
-    #else:
-    #    random.seed()
-        
-    #random_num = random.getstate()[0]
-        
+
+    #Making sure we know what type of maps we're making
     if sum([temp_only, TQU_maps, TEB_maps, phi_map])>1:
         print("You can only pick only one of these options: temperature-map only, TQU maps, TEB maps or phi_map.")
         return None
@@ -341,7 +347,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         all_maps = np.zeros([num_maps,1,int(pixels),int(pixels)])
     
         #Loop to create all maps
-        while i < num_maps:
+        for i in range(0,num_maps):
             
             #Creating each individual map
             one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clTT"]],[0], seed=input_seeds[i])
@@ -353,7 +359,6 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             if np.mod(i,100) == 0:
                 print(i,)
             
-            i+=1
         
     #This part makes temperature maps with their respective Q and U modes
     elif TQU_maps:
@@ -362,7 +367,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         all_maps = np.zeros([num_maps,3,int(pixels),int(pixels)])
         
         #Loop to create all maps
-        while i < num_maps:
+        for i in range(0,num_maps):
             
             #Creating *one set* of temperature maps plus its Q and U maps
             one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,2],seed=input_seeds[i])
@@ -373,7 +378,6 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
                 print(i,)
-            i+=1
 
     #This part makes temperature maps with their respective E and B modes
     elif TEB_maps:
@@ -382,7 +386,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         all_maps = np.zeros([num_maps,3,int(pixels),int(pixels)])
         
         #Loop to create all maps
-        while i < num_maps:
+        for i in range(0,num_maps):
             
             #Creating *one set* of temperature maps plus its E and B maps
             one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,0,0], seed=input_seeds[i])
@@ -393,7 +397,6 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
                 print(i,)
-            i+=1
             
     #This part makes phi maps only
     elif phi_map:
@@ -403,7 +406,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         
         #Loop to create all maps
         #If these maps look odd, you may have forgotten to nomalize the phi spectrum from CAMB, which is done automatically using load_cmb_spectra.
-        while i < num_maps:
+        for i in range(0,num_maps):
             
             #Creating one phi (gravitational deflection) map
             one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clPP"]],[0], seed=input_seeds[i])
@@ -414,8 +417,6 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
                 print(i,)
-            i+=1
-        
         
     else:
         print("What type of maps did you want?")

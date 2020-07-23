@@ -93,7 +93,24 @@ class tebmap(ql.maps.pix):
         ret = ql.maps.tqumap( self.nx, self.dx, maps=[self.tmap, qmap, umap])
         return ret
 
+    def get_tebfft(self):
+        """ return a QuickLens tebfft object """
+        #Getting tebfft object
+	ret = tebfft( self.nx, self.dx, ny = self.ny, dy = self.dy)
+
+        #Calculating frequency-domain/spacial-domain conversion factor
+        tfac = np.sqrt((self.dx * self.dy) / (self.nx * self.ny))
+
+        #Calculating FFTs
+        ret.tfft[:] = np.fft.rfft2(self.tmap) * tfac
+        ret.efft[:] = np.fft.rfft2(self.emap) * tfac
+        ret.bfft[:] = np.fft.rfft2(self.bmap) * tfac
+
+        return ret
+
+
 def plot_map(skymap, title, colorscheme="viridis", save_loc="figures/", filename=None):
+     """Simple plotting function"""
      fig = plt.figure()
      plt.title(title)
      plt.imshow(skymap, cmap=colorscheme)
@@ -106,7 +123,64 @@ def plot_map(skymap, title, colorscheme="viridis", save_loc="figures/", filename
           plt.savefig(save_loc+filename)
      return fig 
 
-#FIXME: write function convert from tqumap object tebmap object
+def get_tebmap(tqumap):
+     """Function for getting tebmap object from tqumap object"""
+
+     #Getting FFT object for TEB
+     teb_fft = tqumap.get_teb()
+
+     #Inverse FFT to get maps
+     emap = numpy.fft.irfft2(teb_fft.efft)
+     bmap = numpy.fft.irfft2(teb_fft.bfft)
+
+     #Loading into tebmap structure
+     teb_map = tebmap(tqumap.nx, tqumap.dx, [tqumap.tmap, emap, bmap])
+
+     return teb_map
+
+def lens_maps(cmb_maps, phi_fft, TEB_maps=False, TQU_maps=False, return_TQU=True, apodize_mask=None):
+     """
+     Function for lensing maps. Must be given QuickLens-style tebmap or tqumap
+     object and QuickLens-style phi fft object
+     """
+     #Checking input maps
+     if not (sum([TEB_maps,TQU_maps])==1):
+           print("Do the maps that you're lensing have E & B modes or Q & U modes?")
+           return
+
+     #Prepping to-be-lensed-maps
+     if TEB_maps:
+           unlensed_maps = cmb_maps.get_tqu()
+
+     elif TQU_maps:
+           unlensed_maps = cmb_maps
+
+     #This is the lens-y bit
+     lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_maps, phi_fft)
+
+     #Apodizing maps and/or converting to T, E and B maps
+     if apodize_mask and return_TQU:
+        qmap_lensed = apodize_mask*lensed_tqu.qmap
+        umap_lensed = apodize_mask*lensed_tqu.umap
+        lensed_maps = tqumap(cmb_maps.nx, cmb_maps.dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+
+     elif apodize_mask and not return_TQU:
+        qmap_lensed = apodize_mask*lensed_tqu.qmap
+        umap_lensed = apodize_mask*lensed_tqu.umap
+        lensed_tqu = tqumap(cmb_maps.nx, cmb_maps.dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+        lensed_maps = get_tebmap(lensed_tqu)
+
+     elif not apodize_mask and return_TQU:
+        lensed_maps = lensed_tqu
+
+     elif not apodize_mask and not return_TQU:
+        lensed_maps = get_tebmap(lensed_tqu)
+
+     else:
+        print("How did I even get this far in the 'if' statements?")
+
+     return lensed_maps
+        
 
 #Defining map parameters
 pixels = 192. #192 pixels on each side
@@ -120,7 +194,6 @@ lstep = lmax*2/pixels #increase in l-mode from one pixel to the next
 tfac = dx/pixels #converts from pixels to radians
 pix = ql.maps.pix(nx, dx)
 print("Finished setting parameters")
-
 
 #Loading in E & B maps 
 temperature_map = numpy.load('all_unlensed_temperature_maps.npy')
@@ -151,9 +224,6 @@ efft_for_structure = emap_for_structure.get_rfft()
 lx, ly = efft_for_structure.get_lxly()
 ell2D = efft_for_structure.get_ell()
 print("Finished calculating l-modes")
-
-numpy.save("lx", lx)
-numpy.save("ly", ly)
 
 #Calculating factor to convert from kappa to phi FFTs
 #Setting the 0-mode to 1 so be don't get Runtime Errors later in the code
@@ -219,8 +289,6 @@ for i, mapz in enumerate(temperature_map[0:1]):
 	q_maps[i] = qmap_lensed_apod
 	u_maps[i] = umap_lensed_apod
 	e_maps[i] = emap_apod.map
-
-
 
 #Plotting! Lots of Plotting!
 #Plotting the E map

@@ -240,31 +240,11 @@ for i, mapz in enumerate(temperature_map[0:1]):
 	if numpy.mod(i,100)==0:
 		print i,
 
-	#Setting E & B maps
-	emap = ql.maps.rmap(nx, dx, map=mapz[1])
-	bmap = ql.maps.rmap(nx, dx, map=mapz[2])
-	
-	#Calculating FFT of E & B maps
-	efft = emap.get_rfft()
-	bfft = bmap.get_rfft()
-
-	#Calculating Q & U Maps
-	qmap = numpy.fft.irfft2(numpy.cos(tpi)*efft.fft - numpy.sin(tpi)*bfft.fft) / tfac
-	umap = numpy.fft.irfft2(numpy.sin(tpi)*efft.fft + numpy.cos(tpi)*bfft.fft) / tfac
-
-	#Calculating unlensed apodized maps
-	qmap_un = qmap * apod_mask
-	umap_un = umap * apod_mask
+        #Trying out tebmap structure
+	teb = tebmap(nx,dx,maps=[mapz[0],mapz[1],mapz[2]])
 
 	#Putting Q & U maps into QuickLens structure
-	tqu_maps = ql.maps.tqumap(nx, dx, maps=[numpy.zeros((nx, nx)), qmap_un, umap_un])
-
-	#Getting the T, E & B maps to get unlensed, apodized E map
-	teb_fft_structure = tqu_maps.get_teb()
-
-	#Getting apodized emap
-	efft_apod = ql.maps.rfft(nx, dx, fft=teb_fft_structure.efft)
-	emap_apod = efft_apod.get_rmap()
+	tqu_maps = teb.get_tqu()
 
 	#Putting phi map FFT into QuickLens structure
 	phi_map_fft = ql.maps.rfft(nx, dx, fft=phi_map_ffts[i]*tfac)
@@ -292,7 +272,7 @@ for i, mapz in enumerate(temperature_map[0:1]):
 
 #Plotting! Lots of Plotting!
 #Plotting the E map
-plot_map(teb.emap, "Class-Structure E Map", colorscheme="plasma") 
+#plot_map(teb.emap, "Class-Structure E Map", colorscheme="plasma") 
 
 exit()
 

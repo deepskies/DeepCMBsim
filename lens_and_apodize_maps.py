@@ -20,9 +20,9 @@ class tebmap(ql.maps.pix):
         
         super( tebmap, self ).__init__(nx, dx, ny=ny, dy=dy)
         if maps is None:
-            self.tmap = np.zeros( (self.ny, self.nx) )
-            self.emap = np.zeros( (self.ny, self.nx) )
-            self.bmap = np.zeros( (self.ny, self.nx) )
+            self.tmap = numpy.zeros( (self.ny, self.nx) )
+            self.emap = numpy.zeros( (self.ny, self.nx) )
+            self.bmap = numpy.zeros( (self.ny, self.nx) )
         else:
             [self.tmap, self.emap, self.bmap] = maps
 
@@ -39,8 +39,8 @@ class tebmap(ql.maps.pix):
         """ make a new map with dimensions nxp (>nx), nyp (>ny) with this map at its center. """
         assert( nxp > self.nx )
         assert( nyp > self.ny )
-        assert( np.mod( nxp - self.nx, 2 ) == 0 )
-        assert( np.mod( nyp - self.ny, 2 ) == 0 )
+        assert( numpy.mod( nxp - self.nx, 2 ) == 0 )
+        assert( numpy.mod( nyp - self.ny, 2 ) == 0 )
 
         ret = tebmap( nx=nxp, dx=self.dx, ny=nyp, dy=self.dy )
         for this, that in [ [self.tmap, ret.tmap], [self.emap, ret.emap], [self.bmap, ret.bmap] ]:
@@ -53,14 +53,14 @@ class tebmap(ql.maps.pix):
         threshold(min,max) -> set all pixels which don't satisfy (vmin < val < vmax) equal to vcut.
         """
         if vmax is None:
-            vmin = -np.abs(vmin)
-            vmax = +np.abs(vmin)
+            vmin = -numpy.abs(vmin)
+            vmax = +numpy.abs(vmin)
         assert( vmin < vmax )
 
         ret = self.copy()
         for m in [ret.tmap, ret.emap, ret.bmap]:
-            m[np.where(m < vmin)] = vcut
-            m[np.where(m > vmax)] = vcut
+            m[numpy.where(m < vmin)] = vcut
+            m[numpy.where(m > vmax)] = vcut
         return ret
 
     def compatible(self, other):
@@ -70,21 +70,34 @@ class tebmap(ql.maps.pix):
                  hasattr(other, 'bmap') and
                  super(tebmap, self).compatible(other) )
 
+    def get_rfft(self):
+        """ return real ffts of map objects """
+        ret_t = ql.maps.rfft( self.nx, self.dx, ny = self.ny, dy = self.dy )
+        ret_e = ql.maps.rfft( self.nx, self.dx, ny = self.ny, dy = self.dy )
+        ret_b = ql.maps.rfft( self.nx, self.dx, ny = self.ny, dy = self.dy )
+ 
+        #Calculating conversion factor
+        tfac = numpy.sqrt((self.dx * self.dy) / (self.nx * self.ny))
+
+        ret_t.fft[:] = numpy.fft.rfft2(self.tmap) * tfac
+        ret_e.fft[:] = numpy.fft.rfft2(self.emap) * tfac
+        ret_b.fft[:] = numpy.fft.rfft2(self.bmap) * tfac
+        return ret_t, ret_e, ret_b
+
     def get_tqu(self):
         """ return a tqumap object containing the fourier transform of the T,Q,U maps. """
 
         #Calculating FFT of E & B maps
-        efft = self.emap.get_rfft()
-        bfft = self.bmap.get_rfft()
+        tfft, efft, bfft = self.get_rfft()
 
 	#Calculating l-modes in x- and y- directions
-	lx, ly = efft_for_structure.get_lxly()
+	lx, ly = efft.get_lxly()
 
 	#Calculating angle
 	tpi  = 2.*numpy.arctan2(lx, -ly)
 
 	#Calculating FFT conversion factor
-        tfac = np.sqrt((self.dx * self.dy) / (self.nx * self.ny))
+        tfac = numpy.sqrt((self.dx * self.dy) / (self.nx * self.ny))
 
         #Calculating Q & U Maps
         qmap = numpy.fft.irfft2(numpy.cos(tpi)*efft.fft - numpy.sin(tpi)*bfft.fft) / tfac
@@ -99,12 +112,12 @@ class tebmap(ql.maps.pix):
 	ret = tebfft( self.nx, self.dx, ny = self.ny, dy = self.dy)
 
         #Calculating frequency-domain/spacial-domain conversion factor
-        tfac = np.sqrt((self.dx * self.dy) / (self.nx * self.ny))
+        tfac = numpy.sqrt((self.dx * self.dy) / (self.nx * self.ny))
 
         #Calculating FFTs
-        ret.tfft[:] = np.fft.rfft2(self.tmap) * tfac
-        ret.efft[:] = np.fft.rfft2(self.emap) * tfac
-        ret.bfft[:] = np.fft.rfft2(self.bmap) * tfac
+        ret.tfft[:] = numpy.fft.rfft2(self.tmap) * tfac
+        ret.efft[:] = numpy.fft.rfft2(self.emap) * tfac
+        ret.bfft[:] = numpy.fft.rfft2(self.bmap) * tfac
 
         return ret
 
@@ -246,15 +259,32 @@ for i, mapz in enumerate(temperature_map[0:1]):
 	#Putting Q & U maps into QuickLens structure
 	tqu_maps = teb.get_tqu()
 
+        #Old structure for comparison
+	#Setting E & B maps
+	emap = ql.maps.rmap(nx, dx, map=mapz[1])
+	bmap = ql.maps.rmap(nx, dx, map=mapz[2])
+	
+	#Calculating FFT of E & B maps
+	efft = emap.get_rfft()
+	bfft = bmap.get_rfft()
+
+	#Calculating Q & U Maps
+	qmap = numpy.fft.irfft2(numpy.cos(tpi)*efft.fft - numpy.sin(tpi)*bfft.fft) / tfac
+	umap = numpy.fft.irfft2(numpy.sin(tpi)*efft.fft + numpy.cos(tpi)*bfft.fft) / tfac
+
+	#Putting Q & U maps into QuickLens structure
+	tqu_maps_old = ql.maps.tqumap(nx, dx, maps=[numpy.zeros((nx, nx)), qmap, umap])
+
 	#Putting phi map FFT into QuickLens structure
 	phi_map_fft = ql.maps.rfft(nx, dx, fft=phi_map_ffts[i]*tfac)
 
 	#Lensing the temperature/Q/U map using the phi map FFT and the QuickLens data structure
 	lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_maps, phi_map_fft)
+        lensed_tqu_old = ql.lens.make_lensed_map_flat_sky(tqu_maps_old, phi_map_fft)
 
 	#Applying apodization
-	unlensed_qmap = apod_mask*qmap
-	unlensed_umap = apod_mask*umap
+	unlensed_qmap = apod_mask*tqu_maps.qmap
+	unlensed_umap = apod_mask*tqu_maps.umap
 	qmap_lensed_apod = apod_mask*lensed_tqu.qmap
 	umap_lensed_apod = apod_mask*lensed_tqu.umap
 
@@ -268,11 +298,12 @@ for i, mapz in enumerate(temperature_map[0:1]):
 	kappa_maps[i] = kappa.map*apod_mask
 	q_maps[i] = qmap_lensed_apod
 	u_maps[i] = umap_lensed_apod
-	e_maps[i] = emap_apod.map
 
 #Plotting! Lots of Plotting!
 #Plotting the E map
-#plot_map(teb.emap, "Class-Structure E Map", colorscheme="plasma") 
+plot_map(tqu_maps.qmap, "New Code Unlensed Q Map", colorscheme="plasma") 
+plot_map(tqu_maps_old.qmap, "Old Code Unlensed Q Map", colorscheme="plasma") 
+plot_map(tqu_maps.qmap - tqu_maps_old.qmap, "Diff'd Unlensed Q Maps", colorscheme="plasma") 
 
 exit()
 

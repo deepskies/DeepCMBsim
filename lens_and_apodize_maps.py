@@ -1,7 +1,6 @@
-#Code for lensing CMB maps for Joao's ML code
-#The module performing the lenses is QuickLens.
-#Joao requires unlensed Q & U maps, lensed E maps and kappa maps.
-#To lens maps, QuickLens requires unlensed T maps and a real FFT of the phi map.
+#Code for lensing CMB maps
+#The module performing the lensing is QuickLens.
+#To lens maps, QuickLens requires unlensed TQU maps and a real FFT of the phi map.
 
 #Sourcing the required modules.
 import sys
@@ -171,29 +170,45 @@ def lens_maps(cmb_maps, phi_fft, TEB_maps=False, TQU_maps=False, return_TQU=True
      #This is the lens-y bit
      lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_maps, phi_fft)
 
-     #Apodizing maps and/or converting to T, E and B maps
-     if apodize_mask and return_TQU:
+     #Apodizing maps or not
+     if numpy.shape(apodize_mask)[0]>0:
         qmap_lensed = apodize_mask*lensed_tqu.qmap
         umap_lensed = apodize_mask*lensed_tqu.umap
-        lensed_maps = tqumap(cmb_maps.nx, cmb_maps.dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
-
-     elif apodize_mask and not return_TQU:
-        qmap_lensed = apodize_mask*lensed_tqu.qmap
-        umap_lensed = apodize_mask*lensed_tqu.umap
-        lensed_tqu = tqumap(cmb_maps.nx, cmb_maps.dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
-        lensed_maps = get_tebmap(lensed_tqu)
-
-     elif not apodize_mask and return_TQU:
-        lensed_maps = lensed_tqu
-
-     elif not apodize_mask and not return_TQU:
-        lensed_maps = get_tebmap(lensed_tqu)
-
+ 
      else:
-        print("How did I even get this far in the 'if' statements?")
+        qmap_lensed = lensed_tqu.qmap
+        umap_lensed = lensed_tqu.umap
+ 
+     #Converting to TEB or leaving as TQU
+     if return_TQU:
+        lensed_maps = ql.maps.tqumap(cmb_maps.nx, cmb_maps.dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+
+     elif not return_TQU:
+        lensed_tqu = tqumap(cmb_maps.nx, cmb_maps.dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+        lensed_maps = get_tebmap(lensed_tqu)    
 
      return lensed_maps
-        
+
+def load_phi(phi_map, nx, dx, is_fft=False):
+    """
+    Function for loading phi map or phi map fft into QuickLens structure.
+    """
+
+    if is_fft:
+       #This assumes you've already multiplied by the conversion factor
+       phi_map_fft = ql.maps.rfft(nx, dx, fft=phi_map)
+
+    else:
+       #Calculating FFT/spacial map conversion factor
+       tfac = numpy.sqrt((dx**2) /(nx**2))
+
+       #Calculating FFT
+       phi_fft = np.fft.rfft2(phi_map)*tfac
+
+       #Loading into QuickLens class structure
+       phi_map_fft = ql.maps.rfft(nx, dx, fft=phi_fft)
+
+    return phi_map_fft
 
 #Defining map parameters
 pixels = 192. #192 pixels on each side
@@ -204,7 +219,7 @@ reso_arcmin = reso*60 #resolution in arcminutes
 dx = reso*numpy.pi/180.0 #resolution in radians
 lmax = 180./reso #maximum l-mode achievable given these parameters
 lstep = lmax*2/pixels #increase in l-mode from one pixel to the next
-tfac = dx/pixels #converts from pixels to radians
+tfac = numpy.sqrt((dx**2) /(nx**2)) #converts from pixels to radians
 pix = ql.maps.pix(nx, dx)
 print("Finished setting parameters")
 
@@ -256,151 +271,21 @@ for i, mapz in enumerate(temperature_map[0:1]):
         #Trying out tebmap structure
 	teb = tebmap(nx,dx,maps=[mapz[0],mapz[1],mapz[2]])
 
-	#Putting Q & U maps into QuickLens structure
-	tqu_maps = teb.get_tqu()
+        #Getting tqumap for lensing
+        tqu_maps = teb.get_tqu()
 
-        #Old structure for comparison
-	#Setting E & B maps
-	emap = ql.maps.rmap(nx, dx, map=mapz[1])
-	bmap = ql.maps.rmap(nx, dx, map=mapz[2])
-	
-	#Calculating FFT of E & B maps
-	efft = emap.get_rfft()
-	bfft = bmap.get_rfft()
+       	#Putting phi map FFT into QuickLens structure
+	phi_map_fft = load_phi(phi_map_ffts[i]*tfac, nx, dx, is_fft=True)
 
-	#Calculating Q & U Maps
-	qmap = numpy.fft.irfft2(numpy.cos(tpi)*efft.fft - numpy.sin(tpi)*bfft.fft) / tfac
-	umap = numpy.fft.irfft2(numpy.sin(tpi)*efft.fft + numpy.cos(tpi)*bfft.fft) / tfac
+        #Lensing with new lensing function
+        lensed_tqu = lens_maps(teb, phi_map_fft, TEB_maps=True, apodize_mask = apod_mask)
 
-	#Putting Q & U maps into QuickLens structure
-	tqu_maps_old = ql.maps.tqumap(nx, dx, maps=[numpy.zeros((nx, nx)), qmap, umap])
-
-	#Putting phi map FFT into QuickLens structure
-	phi_map_fft = ql.maps.rfft(nx, dx, fft=phi_map_ffts[i]*tfac)
-
-	#Lensing the temperature/Q/U map using the phi map FFT and the QuickLens data structure
-	lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_maps, phi_map_fft)
-        lensed_tqu_old = ql.lens.make_lensed_map_flat_sky(tqu_maps_old, phi_map_fft)
-
-	#Applying apodization
-	unlensed_qmap = apod_mask*tqu_maps.qmap
-	unlensed_umap = apod_mask*tqu_maps.umap
-	qmap_lensed_apod = apod_mask*lensed_tqu.qmap
-	umap_lensed_apod = apod_mask*lensed_tqu.umap
-
-	#Calculating the kappa map using QuickLens structure
-	kappa_map_fft = ql.maps.rfft(nx, dx, fft=phi_map_fft.fft*tfac*fac)
-
-	#Converting kappa map FFT to the kappa map
-	kappa = kappa_map_fft.get_rmap()
-
-	#Saving maps
-	kappa_maps[i] = kappa.map*apod_mask
-	q_maps[i] = qmap_lensed_apod
-	u_maps[i] = umap_lensed_apod
+	#Testing TEB maps
+	lensed_teb = get_tebmap(lensed_tqu)
 
 #Plotting! Lots of Plotting!
 #Plotting the E map
-plot_map(tqu_maps.qmap, "New Code Unlensed Q Map", colorscheme="plasma") 
-plot_map(tqu_maps_old.qmap, "Old Code Unlensed Q Map", colorscheme="plasma") 
-plot_map(tqu_maps.qmap - tqu_maps_old.qmap, "Diff'd Unlensed Q Maps", colorscheme="plasma") 
-
-exit()
-
-#Plotting the E map
-plt.figure()
-plt.title("Unlensed, Apodized E Map")
-plt.imshow(emap.map, cmap="plasma")
-plt.colorbar()
-plt.title("E Map")
-plt.savefig("figures/e_map_final.png")
-
-
-#Plotting Q map
-plt.figure()
-plt.title("Lensed, Apodized Q Map")
-plt.imshow(qmap_lensed_apod, cmap="viridis")
-plt.colorbar()
-plt.savefig("figures/q_map_final.png")
-
-#Plotting the U map
-plt.figure()
-plt.title("Lensed, Apodized U Map")
-plt.imshow(umap_lensed_apod, cmap="viridis")
-plt.colorbar()
-plt.savefig("figures/u_map_final.png")
-
-#Plotting Q map
-plt.figure()
-plt.title("Unlensed, Apodized Q Map")
-plt.imshow(qmap_un, cmap="viridis")
-plt.colorbar()
-plt.savefig("figures/q_map_un_final.png")
-
-#Plotting the U map
-plt.figure()
-plt.title("Unlensed, Apodized U Map")
-plt.imshow(umap_un, cmap="viridis")
-plt.colorbar()
-plt.savefig("figures/u_map_un_final.png")
-
-#Plotting the kappa map
-plt.figure()
-plt.title("Apodized Kappa Map")
-plt.imshow(kappa.map*apod_mask, cmap="bwr")
-plt.colorbar()
-plt.savefig("figures/kappa_map_final.png")
-
-#Now with the class system
-#Plotting the E map
-plt.figure()
-plt.title("Unlensed, Apodized E Map")
-plt.imshow(emap_apod.map, cmap="plasma")
-plt.colorbar()
-plt.title("E Map")
-plt.savefig("figures/e_map_final.png")
-
-#Plotting Q map
-plt.figure()
-plt.title("Lensed, Apodized Q Map")
-plt.imshow(qmap_lensed_apod, cmap="viridis")
-plt.colorbar()
-plt.savefig("figures/q_map_final.png")
-
-#Plotting the U map
-plt.figure()
-plt.title("Lensed, Apodized U Map")
-plt.imshow(umap_lensed_apod, cmap="viridis")
-plt.colorbar()
-plt.savefig("figures/u_map_final.png")
-
-#Plotting Q map
-plt.figure()
-plt.title("Unlensed, Apodized Q Map")
-plt.imshow(qmap_un, cmap="viridis")
-plt.colorbar()
-plt.savefig("figures/q_map_un_final.png")
-
-#Plotting the U map
-plt.figure()
-plt.title("Unlensed, Apodized U Map")
-plt.imshow(umap_un, cmap="viridis")
-plt.colorbar()
-plt.savefig("figures/u_map_un_final.png")
-
-#Plotting the kappa map
-plt.figure()
-plt.title("Apodized Kappa Map")
-plt.imshow(kappa.map*apod_mask, cmap="bwr")
-plt.colorbar()
-plt.savefig("figures/kappa_map_final.png")
-
-exit()
-
-print("Saving data")
-numpy.save("q_maps", q_maps)
-numpy.save("u_maps", u_maps)
-numpy.save("e_maps", e_maps)
-numpy.save("kappa_maps", kappa_maps)
+plot_map(lensed_tqu.qmap, "Lensed & Apodized Q Mode Map", colorscheme="plasma")
+plot_map(lensed_tqu.umap, "Lensed & Apodized U Mode Map", colorscheme="plasma")
 
 exit()

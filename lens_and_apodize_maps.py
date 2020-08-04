@@ -136,13 +136,15 @@ def plot_map(skymap, title, colorscheme="viridis", save_loc="figures/", filename
 
 def get_tebmap(tqumap):
      """Function for getting tebmap object from tqumap object"""
+     #Calculating FFT/spacial map conversion factor
+     tfac = numpy.sqrt((tqumap.dx**2) /(tqumap.nx**2))
 
      #Getting FFT object for TEB
      teb_fft = tqumap.get_teb()
 
      #Inverse FFT to get maps
-     emap = numpy.fft.irfft2(teb_fft.efft)
-     bmap = numpy.fft.irfft2(teb_fft.bfft)
+     emap = numpy.fft.irfft2(teb_fft.efft)/tfac
+     bmap = numpy.fft.irfft2(teb_fft.bfft)/tfac
 
      #Loading into tebmap structure
      teb_map = tebmap(tqumap.nx, tqumap.dx, [tqumap.tmap, emap, bmap])
@@ -200,7 +202,7 @@ def lens_maps(cmb_maps, phi_maps, num_maps, nx, dx, TQU_maps=True, return_TQU=Tr
           output_maps[i] = [lensed_maps.tmap, lensed_maps.qmap, lensed_maps.umap]
  
        elif not return_TQU:
-          lensed_tqu = tqumap(nx, dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+          lensed_tqu = ql.maps.tqumap(nx, dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
           lensed_maps = get_tebmap(lensed_tqu)
           output_maps[i] = [lensed_maps.tmap, lensed_maps.emap, lensed_maps.bmap]
 
@@ -228,36 +230,3 @@ def load_phi(phi_map, nx, dx, is_fft=False):
        phi_map_fft = ql.maps.rfft(nx, dx, fft=phi_fft)
 
     return phi_map_fft
-
-#Defining map parameters
-pixels = 192
-degrees = 5 #5 degrees on each side
-reso = float(degrees)/pixels #resolution in degrees
-dx = reso*numpy.pi/180.0 #resolution in radians
-tfac = numpy.sqrt((float(dx)**2) /(float(pixels)**2)) #converts from pixels to radians
-print("Finished setting parameters")
-
-#Loading in E & B maps 
-temperature_map = numpy.load('all_unlensed_temperature_maps.npy')
-print("Finished loading unlensed map")
-
-#Testing class structure
-teb = tebmap(pixels, dx, maps=temperature_map[0])
-
-#Loading in phi map FFTs
-phi_map_ffts = numpy.load('all_phi_map_ffts.npy')
-print("Finished loading in phi map FFTs")
-
-#Setting up struture to save unlensed, lensed Q & U maps and kappa maps#Loading in apodization mask
-apod_mask = numpy.load("apod_highres.npy")
-print("Finished loading apodization mask")
-
-phi_maps = [numpy.fft.irfft2(phi_map_ffts[0]), numpy.fft.irfft2(phi_map_ffts[1])]
-
-function_maps = lens_maps(temperature_map[0:2], phi_maps, 2, pixels, dx, TQU_maps=False)
-
-#Plotting! Lots of Plotting!
-plot_map(function_maps[1,1], "Lensed & Apodized Q Mode Map", colorscheme="plasma")
-plot_map(function_maps[1,2], "Lensed & Apodized U Mode Map", colorscheme="plasma")
-
-exit()

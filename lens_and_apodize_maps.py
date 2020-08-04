@@ -10,7 +10,6 @@ import quicklens as ql
 import numpy
 import matplotlib.pyplot as plt
 import matplotlib
-print("Finished loading modules")
 
 class tebmap(ql.maps.pix):
 
@@ -150,44 +149,64 @@ def get_tebmap(tqumap):
 
      return teb_map
 
-def lens_maps(cmb_maps, phi_fft, TEB_maps=False, TQU_maps=False, return_TQU=True, apodize_mask=None):
-     """
-     Function for lensing maps. Must be given QuickLens-style tebmap or tqumap
-     object and QuickLens-style phi fft object
-     """
-     #Checking input maps
-     if not (sum([TEB_maps,TQU_maps])==1):
-           print("Do the maps that you're lensing have E & B modes or Q & U modes?")
-           return
+def lens_maps(cmb_maps, phi_maps, num_maps, nx, dx, TQU_maps=True, return_TQU=True, apodize_mask=[]):
+    """
+    Function for lensing multiple sets of maps. Takes set of maps (either T, Q
+    & U maps or T, E, & B maps with a phi map) and lenses them, returning
+    the maps as a large numpy array. Phi map is assumed to not be an FFT.
+    Input maps are assumed to be .npy files.
+    """
 
-     #Prepping to-be-lensed-maps
-     if TEB_maps:
-           unlensed_maps = cmb_maps.get_tqu()
+    #Checking for the right number of maps
+    if (num_maps > 1) and (not len(cmb_maps) == num_maps or not len(phi_maps) == num_maps):
+       print("You need to have the same number of CMB map sets, phi maps and maps you want to lens.")
+       return
 
-     elif TQU_maps:
-           unlensed_maps = cmb_maps
+    #Creating structure for output maps
+    output_maps = numpy.zeros((num_maps, 3, nx, nx))
 
-     #This is the lens-y bit
-     lensed_tqu = ql.lens.make_lensed_map_flat_sky(tqu_maps, phi_fft)
+    #Beginning loop for lensing
+    print("Beginning lensing process. Number of map sets lensed:")
+    for i in range(0,num_maps):
 
-     #Apodizing maps or not
-     if numpy.shape(apodize_mask)[0]>0:
-        qmap_lensed = apodize_mask*lensed_tqu.qmap
-        umap_lensed = apodize_mask*lensed_tqu.umap
+       if numpy.mod(i,100) == 0:
+          print i, #print(i, end = ", ") #<--Python3 print statement
+
+       #Loading phi map into QuickLens class structure
+       phi_fft = load_phi(phi_maps[i], nx, dx)
+
+       #Prepping to-be-lensed-maps
+       if TQU_maps:
+          unlensed_maps = ql.maps.tqumap(nx, dx, maps=[cmb_maps[i,0], cmb_maps[i,1], cmb_maps[i,2]])
+       else:
+          teb_map_set = tebmap(nx, dx, maps=[cmb_maps[i,0], cmb_maps[i,1], cmb_maps[i,2]])
+          unlensed_maps = teb_map_set.get_tqu()
+    
+       #This is the lens-y bit
+       lensed_tqu = ql.lens.make_lensed_map_flat_sky(unlensed_maps, phi_fft)
+   
+       #Apodizing maps or not
+       if numpy.shape(apodize_mask)[0]>0:
+          qmap_lensed = apodize_mask*lensed_tqu.qmap
+          umap_lensed = apodize_mask*lensed_tqu.umap
+     
+       else:
+          qmap_lensed = lensed_tqu.qmap
+          umap_lensed = lensed_tqu.umap
+     
+       #Converting to TEB or leaving as TQU
+       if return_TQU:
+          lensed_maps = ql.maps.tqumap(nx, dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+          output_maps[i] = [lensed_maps.tmap, lensed_maps.qmap, lensed_maps.umap]
  
-     else:
-        qmap_lensed = lensed_tqu.qmap
-        umap_lensed = lensed_tqu.umap
- 
-     #Converting to TEB or leaving as TQU
-     if return_TQU:
-        lensed_maps = ql.maps.tqumap(cmb_maps.nx, cmb_maps.dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+       elif not return_TQU:
+          lensed_tqu = tqumap(nx, dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+          lensed_maps = get_tebmap(lensed_tqu)
+          output_maps[i] = [lensed_maps.tmap, lensed_maps.emap, lensed_maps.bmap]
 
-     elif not return_TQU:
-        lensed_tqu = tqumap(cmb_maps.nx, cmb_maps.dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
-        lensed_maps = get_tebmap(lensed_tqu)    
-
-     return lensed_maps
+    print("Finished lensing maps.")
+    
+    return output_maps
 
 def load_phi(phi_map, nx, dx, is_fft=False):
     """
@@ -203,7 +222,7 @@ def load_phi(phi_map, nx, dx, is_fft=False):
        tfac = numpy.sqrt((dx**2) /(nx**2))
 
        #Calculating FFT
-       phi_fft = np.fft.rfft2(phi_map)*tfac
+       phi_fft = numpy.fft.rfft2(phi_map)*tfac
 
        #Loading into QuickLens class structure
        phi_map_fft = ql.maps.rfft(nx, dx, fft=phi_fft)
@@ -211,16 +230,11 @@ def load_phi(phi_map, nx, dx, is_fft=False):
     return phi_map_fft
 
 #Defining map parameters
-pixels = 192. #192 pixels on each side
-nx = int(pixels)
-side = 5 #5 degrees on each side
-reso = side/pixels #resolution in degrees
-reso_arcmin = reso*60 #resolution in arcminutes
+pixels = 192
+degrees = 5 #5 degrees on each side
+reso = float(degrees)/pixels #resolution in degrees
 dx = reso*numpy.pi/180.0 #resolution in radians
-lmax = 180./reso #maximum l-mode achievable given these parameters
-lstep = lmax*2/pixels #increase in l-mode from one pixel to the next
-tfac = numpy.sqrt((dx**2) /(nx**2)) #converts from pixels to radians
-pix = ql.maps.pix(nx, dx)
+tfac = numpy.sqrt((float(dx)**2) /(float(pixels)**2)) #converts from pixels to radians
 print("Finished setting parameters")
 
 #Loading in E & B maps 
@@ -228,64 +242,22 @@ temperature_map = numpy.load('all_unlensed_temperature_maps.npy')
 print("Finished loading unlensed map")
 
 #Testing class structure
-teb = tebmap(nx, dx, maps=temperature_map[0])
+teb = tebmap(pixels, dx, maps=temperature_map[0])
 
 #Loading in phi map FFTs
 phi_map_ffts = numpy.load('all_phi_map_ffts.npy')
 print("Finished loading in phi map FFTs")
 
-#Setting up struture to save unlensed, lensed Q & U maps and kappa maps
-kappa_maps = numpy.zeros((len(temperature_map),int(pixels),int(pixels)))
-e_maps = numpy.zeros((len(temperature_map),int(pixels),int(pixels)))
-q_maps = numpy.zeros((len(temperature_map),int(pixels),int(pixels)))
-u_maps = numpy.zeros((len(temperature_map),int(pixels),int(pixels)))
-
-#Loading in apodization mask
+#Setting up struture to save unlensed, lensed Q & U maps and kappa maps#Loading in apodization mask
 apod_mask = numpy.load("apod_highres.npy")
 print("Finished loading apodization mask")
 
-#Setting up a single 2D FFT (easiest way to calculate the l-modes)
-emap_for_structure = ql.maps.rmap(nx, dx, map=temperature_map[-1,1])
-efft_for_structure = emap_for_structure.get_rfft()
+phi_maps = [numpy.fft.irfft2(phi_map_ffts[0]), numpy.fft.irfft2(phi_map_ffts[1])]
 
-#Getting l-modes
-lx, ly = efft_for_structure.get_lxly()
-ell2D = efft_for_structure.get_ell()
-print("Finished calculating l-modes")
-
-#Calculating factor to convert from kappa to phi FFTs
-#Setting the 0-mode to 1 so be don't get Runtime Errors later in the code
-fac = (ell2D*(ell2D+1.0))/2
-
-#Calculating angle
-tpi  = 2.*numpy.arctan2(lx, -ly)
-
-#Starting loop
-print("Entering loop")
-print("# of maps completed:")
-for i, mapz in enumerate(temperature_map[0:1]):
-
-	if numpy.mod(i,100)==0:
-		print i,
-
-        #Trying out tebmap structure
-	teb = tebmap(nx,dx,maps=[mapz[0],mapz[1],mapz[2]])
-
-        #Getting tqumap for lensing
-        tqu_maps = teb.get_tqu()
-
-       	#Putting phi map FFT into QuickLens structure
-	phi_map_fft = load_phi(phi_map_ffts[i]*tfac, nx, dx, is_fft=True)
-
-        #Lensing with new lensing function
-        lensed_tqu = lens_maps(teb, phi_map_fft, TEB_maps=True, apodize_mask = apod_mask)
-
-	#Testing TEB maps
-	lensed_teb = get_tebmap(lensed_tqu)
+function_maps = lens_maps(temperature_map[0:2], phi_maps, 2, pixels, dx, TQU_maps=False)
 
 #Plotting! Lots of Plotting!
-#Plotting the E map
-plot_map(lensed_tqu.qmap, "Lensed & Apodized Q Mode Map", colorscheme="plasma")
-plot_map(lensed_tqu.umap, "Lensed & Apodized U Mode Map", colorscheme="plasma")
+plot_map(function_maps[1,1], "Lensed & Apodized Q Mode Map", colorscheme="plasma")
+plot_map(function_maps[1,2], "Lensed & Apodized U Mode Map", colorscheme="plasma")
 
 exit()

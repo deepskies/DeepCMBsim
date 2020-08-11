@@ -17,7 +17,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib
-get_ipython().run_line_magic('matplotlib', 'inline')
 import random
 import flatmaps as fm
 from astropy.wcs import WCS
@@ -74,7 +73,7 @@ def load_cmb_spectra(location, fix_scaling=True, add_zeroed=True):
     following spectra are respectively: Temperature-Temperature, E mode-E mode,
     Temperature-E mode cross spectrum, Phi-Phi, Phi-Temperature cross
     """
-    l_modes, clTTa, clEEa, clTEa, clPPa, clPTa = np.loadtxt("planck_2018_cl/base_plikHM_TTTEEE_lowl_lowE_lensing_scalCls.dat", unpack=True)
+    l_modes, clTTa, clEEa, clTEa, clPPa, clPTa = np.loadtxt(location, unpack=True)
     
     #CAMB scales spectra, so we fix that before feeding it into the map generation code
     if fix_scaling:
@@ -357,7 +356,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
 
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print(i,)
+                print i,
             
         
     #This part makes temperature maps with their respective Q and U modes
@@ -377,7 +376,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print(i,)
+                print i,
 
     #This part makes temperature maps with their respective E and B modes
     elif TEB_maps:
@@ -396,7 +395,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print(i,)
+                print i,
             
     #This part makes phi maps only
     elif phi_map:
@@ -416,7 +415,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print(i,)
+                print i,
         
     else:
         print("What type of maps did you want?")

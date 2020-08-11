@@ -151,18 +151,34 @@ def get_tebmap(tqumap):
 
      return teb_map
 
-def lens_maps(cmb_maps, phi_maps, num_maps, nx, dx, TQU_maps=True, return_TQU=True, apodize_mask=[]):
+def lens_maps(cmb_maps, phi_maps, dx, input_type="TQU", output_type="TQU", apodize_mask=[]):
     """
     Function for lensing multiple sets of maps. Takes set of maps (either T, Q
     & U maps or T, E, & B maps with a phi map) and lenses them, returning
     the maps as a large numpy array. Phi map is assumed to not be an FFT.
     Input maps are assumed to be .npy files.
+    For a set of temperature maps, the expected dimension is (num_maps, 3, nx, nx)
+    For a set of phi maps, the expected dimension is (num_maps, nx, nx)
+    For just one map, the expected dimension is (3, nx, nx)
+    For just one phi map, the expected dimension is (nx, nx)
     """
-
     #Checking for the right number of maps
-    if (num_maps > 1) and (not len(cmb_maps) == num_maps or not len(phi_maps) == num_maps):
-       print("You need to have the same number of CMB map sets, phi maps and maps you want to lens.")
-       return
+    assert(cmb_maps.ndim == phi_maps.ndim+1), "You need to have the same number of CMB map sets and phi maps."
+
+    assert(numpy.shape(cmb_maps)[-1] == numpy.shape(phi_maps)[-1]), "The CMB maps and phi maps should have the same dimensionality."
+
+    if cmb_maps.ndim == 3:
+       num_maps = 1
+
+    elif cmb_maps.ndim == 4:
+       num_maps = numpy.shape(cmb_maps)[0]
+
+    nx = numpy.shape(cmb_maps)[-1]
+
+    #Adding an extra dimension if only one map
+    if num_maps == 1:
+       cmb_maps = numpy.expand_dims(cmb_maps, axis=0)
+       phi_maps = numpy.expand_dims(phi_maps, axis=0)
 
     #Creating structure for output maps
     output_maps = numpy.zeros((num_maps, 3, nx, nx))
@@ -178,12 +194,15 @@ def lens_maps(cmb_maps, phi_maps, num_maps, nx, dx, TQU_maps=True, return_TQU=Tr
        phi_fft = load_phi(phi_maps[i], nx, dx)
 
        #Prepping to-be-lensed-maps
-       if TQU_maps:
+       if input_type=="TQU":
           unlensed_maps = ql.maps.tqumap(nx, dx, maps=[cmb_maps[i,0], cmb_maps[i,1], cmb_maps[i,2]])
-       else:
+       elif input_type=="TEB":
           teb_map_set = tebmap(nx, dx, maps=[cmb_maps[i,0], cmb_maps[i,1], cmb_maps[i,2]])
           unlensed_maps = teb_map_set.get_tqu()
-    
+       else:
+          print("Are the input maps 'TQU' or 'TEB' maps?")
+          return
+
        #This is the lens-y bit
        lensed_tqu = ql.lens.make_lensed_map_flat_sky(unlensed_maps, phi_fft)
    
@@ -197,14 +216,17 @@ def lens_maps(cmb_maps, phi_maps, num_maps, nx, dx, TQU_maps=True, return_TQU=Tr
           umap_lensed = lensed_tqu.umap
      
        #Converting to TEB or leaving as TQU
-       if return_TQU:
+       if output_type=="TQU":
           lensed_maps = ql.maps.tqumap(nx, dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
           output_maps[i] = [lensed_maps.tmap, lensed_maps.qmap, lensed_maps.umap]
  
-       elif not return_TQU:
+       elif output_tupe == "TEB":
           lensed_tqu = ql.maps.tqumap(nx, dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
           lensed_maps = get_tebmap(lensed_tqu)
           output_maps[i] = [lensed_maps.tmap, lensed_maps.emap, lensed_maps.bmap]
+
+       else:
+          print("Do you want the input maps to be 'TQU' maps or 'TEB' maps?")
 
     print("Finished lensing maps.")
     
@@ -225,7 +247,7 @@ def load_phi(phi_map, nx, dx, is_fft=False):
 
        #Calculating FFT
        phi_fft = numpy.fft.rfft2(phi_map)*tfac
-
+       
        #Loading into QuickLens class structure
        phi_map_fft = ql.maps.rfft(nx, dx, fft=phi_fft)
 

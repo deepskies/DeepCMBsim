@@ -24,16 +24,12 @@ degrees = 5.
 fmi = fcs.map_parameters(pixels, degrees, projection="AIR")
 reso = float(degrees)/pixels #resolution in degrees
 dx = reso*numpy.pi/180.0 #resolution in radians
-num_maps = 1
+num_maps = 50
+output = "TQU"
 spectra_loc = "./base_plikHM_TTTEEE_lowl_lowE_lensing_scalCls.dat"
+timing = False
+delete = True
 
-plt.rc('text', usetex = True)
-plt.rc('xtick', labelsize=15) 
-plt.rc('ytick', labelsize=15) 
-plt.rc('axes', titlesize=17)     # fontsize of the axes title
-plt.rc('axes', labelsize=15)    # fontsize of the x and y labels
-plt.rc('legend', fontsize=13)    # legend fontsize
-plt.rc('figure', titlesize=18)  # fontsize of the figure title
 print("Finished setting parameters")
 
 parameters_time = time.time()
@@ -47,7 +43,7 @@ print("Finished loading spectra")
 
 spectra_time = time.time()
 
-tqu_maps = fcs.generate_maps(spectra_dict, fmi, 1, pixels, TQU_maps=True)
+tqu_maps = fcs.generate_maps(spectra_dict, fmi, num_maps, pixels, TQU_maps=True)
 print("Finished generating unlensed maps")
 
 unlensed_maps_time = time.time()
@@ -63,9 +59,14 @@ print("Finished loading apodization mask")
 
 load_apod_mask_time = time.time()
 
-function_maps = lens.lens_maps(tqu_maps[0], phi_maps[0,0], dx, apodize_mask = apod_mask)
+function_maps = lens.lens_maps(tqu_maps[0], phi_maps[0,0], dx, output_type=output, apodize_mask = apod_mask)
 
 lens_maps_time = time.time()
+
+if delete:
+   del function_maps
+   del tqu_maps
+   del phi_maps
 
 x = numpy.arange(6)
 y = numpy.zeros((6))
@@ -76,9 +77,14 @@ y[3] = phi_maps_time - unlensed_maps_time
 y[4] = load_apod_mask_time - phi_maps_time
 y[5] = lens_maps_time - load_apod_mask_time
 
-plt.bar(x, y)
-plt.title("Timing for One Lensed Map")
-#plt.show()
-#plt.savefig("timing_1_map.png")
+
+if timing:
+    plt.bar(x, y)
+    plt.xlabel("Checkpoint #")
+    plt.ylabel("Time (s)")
+    plt.title("Timing for %d Lensed %s Map" %(num_maps,output))
+    plt.savefig("figures/timing_%d_%s_map.png" %(num_maps,output))
+
+    numpy.save("timing_data/timing_%d_%s_data.dat"%(num_maps,output), y)
 
 exit()

@@ -208,20 +208,22 @@ def lens_maps(cmb_maps, phi_maps, dx, input_type="TQU", output_type="TQU", apodi
    
        #Apodizing maps or not
        if numpy.shape(apodize_mask)[0]>0:
+          tmap_lensed = apodize_mask*lensed_tqu.tmap
           qmap_lensed = apodize_mask*lensed_tqu.qmap
           umap_lensed = apodize_mask*lensed_tqu.umap
      
        else:
+          tmap_lensed = lensed_tqu.tmap
           qmap_lensed = lensed_tqu.qmap
           umap_lensed = lensed_tqu.umap
      
        #Converting to TEB or leaving as TQU
        if output_type=="TQU":
-          lensed_maps = ql.maps.tqumap(nx, dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+          lensed_maps = ql.maps.tqumap(nx, dx, [tmap_lensed, qmap_lensed, umap_lensed])
           output_maps[i] = [lensed_maps.tmap, lensed_maps.qmap, lensed_maps.umap]
  
-       elif output_tupe == "TEB":
-          lensed_tqu = ql.maps.tqumap(nx, dx, [lensed_tqu.tmap, qmap_lensed, umap_lensed])
+       elif output_type == "TEB":
+          lensed_tqu = ql.maps.tqumap(nx, dx, [tmap_lensed, qmap_lensed, -umap_lensed])
           lensed_maps = get_tebmap(lensed_tqu)
           output_maps[i] = [lensed_maps.tmap, lensed_maps.emap, lensed_maps.bmap]
 

@@ -24,7 +24,7 @@ degrees = 5.
 fmi = fcs.map_parameters(pixels, degrees, projection="AIR")
 reso = float(degrees)/pixels #resolution in degrees
 dx = reso*numpy.pi/180.0 #resolution in radians
-num_maps = 50
+num_maps = 10
 output = "TQU"
 spectra_loc = "./base_plikHM_TTTEEE_lowl_lowE_lensing_scalCls.dat"
 timing = False
@@ -48,7 +48,7 @@ print("Finished generating unlensed maps")
 
 unlensed_maps_time = time.time()
 
-phi_maps = fcs.generate_maps(spectra_dict, fmi, 1, pixels, phi_map=True)
+phi_maps = fcs.generate_maps(spectra_dict, fmi, num_maps, pixels, phi_map=True)
 print("Finished generating phi maps")
 
 phi_maps_time = time.time()
@@ -59,7 +59,7 @@ print("Finished loading apodization mask")
 
 load_apod_mask_time = time.time()
 
-function_maps = lens.lens_maps(tqu_maps[0], phi_maps[0,0], dx, output_type=output, apodize_mask = apod_mask)
+function_maps = lens.lens_maps(tqu_maps, phi_maps, dx, output_type=output, apodize_mask = apod_mask)
 
 lens_maps_time = time.time()
 

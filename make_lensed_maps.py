@@ -43,12 +43,12 @@ print("Finished loading spectra")
 
 spectra_time = time.time()
 
-tqu_maps = fcs.generate_maps(spectra_dict, fmi, num_maps, pixels, TQU_maps=True)
+unlensed_maps_timing, tqu_maps = fcs.generate_maps(spectra_dict, fmi, num_maps, pixels, TQU_maps=True)
 print("Finished generating unlensed maps")
 
 unlensed_maps_time = time.time()
 
-phi_maps = fcs.generate_maps(spectra_dict, fmi, num_maps, pixels, phi_map=True)
+phi_maps_timing, phi_maps = fcs.generate_maps(spectra_dict, fmi, 1, pixels, phi_map=True)
 print("Finished generating phi maps")
 
 phi_maps_time = time.time()

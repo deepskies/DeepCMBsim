@@ -344,7 +344,10 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
     
         #Creating an array to store all of the maps
         all_maps = np.zeros([num_maps,1,int(pixels),int(pixels)])
-    
+        
+        #Print statement for counting
+        print "Number of maps generated: ",
+ 
         #Loop to create all maps
         for i in range(0,num_maps):
             
@@ -356,7 +359,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
 
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print i,
+                print i+1,
             
         
     #This part makes temperature maps with their respective Q and U modes
@@ -364,6 +367,9 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         
         #Creating an array to store all of the maps
         all_maps = np.zeros([num_maps,3,int(pixels),int(pixels)])
+
+        #Print statement for counting
+        print "Number of maps generated: ",
         
         #Loop to create all maps
         for i in range(0,num_maps):
@@ -376,13 +382,16 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print i,
+                print i+1,
 
     #This part makes temperature maps with their respective E and B modes
     elif TEB_maps:
         
         #Creating an array to store all the maps
         all_maps = np.zeros([num_maps,3,int(pixels),int(pixels)])
+
+        #Print statement for counting
+        print "Number of maps generated: ",
         
         #Loop to create all maps
         for i in range(0,num_maps):
@@ -395,13 +404,16 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print i,
+                print i+1,
             
     #This part makes phi maps only
     elif phi_map:
         
-        #Creating an arrayto store all the maps
-        all_maps = np.zeros([num_maps,1,int(pixels),int(pixels)])
+        #Creating an array to store all the maps
+        all_maps = np.zeros([num_maps,int(pixels),int(pixels)])
+
+        #Print statement for counting
+        print "Number of maps generated: ",
         
         #Loop to create all maps
         #If these maps look odd, you may have forgotten to nomalize the phi spectrum from CAMB, which is done automatically using load_cmb_spectra.
@@ -415,7 +427,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print i,
+                print i+1,
         
     else:
         print("What type of maps did you want?")

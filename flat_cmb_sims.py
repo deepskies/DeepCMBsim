@@ -22,6 +22,7 @@ import flatmaps as fm
 from astropy.wcs import WCS
 from scipy.interpolate import interp1d
 import random
+import time
 
 #Defining functions
 def build_checkerboard(w, h) :
@@ -313,6 +314,9 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
     is basically a class which contains information about themaps and is an
     imported module.
     """   
+    #Estimating times for optimization purposes
+    function_start_time = time.time()
+
     #Checking if given seeds are valid 
     if give_seeds is not None:
         #Are there the same number of seeds as maps?
@@ -333,6 +337,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
     else:
         input_seeds = random.sample(range(0, 50000000), num_maps)
 
+    seeds_time = time.time()
 
     #Making sure we know what type of maps we're making
     if sum([temp_only, TQU_maps, TEB_maps, phi_map])>1:
@@ -355,8 +360,8 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             all_maps[i] = one_map_set
 
             #Printing how many maps have been finished (it can seem slow)
-            if np.mod(i,100) == 0:
-                print i,
+            #if np.mod(i,100) == 0:
+                #print i,
             
         
     #This part makes temperature maps with their respective Q and U modes
@@ -375,8 +380,8 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             all_maps[i] = one_map_set
             
             #Printing how many maps have been finished (it can seem slow)
-            if np.mod(i,100) == 0:
-                print i,
+            #if np.mod(i,100) == 0:
+                #print i,
 
     #This part makes temperature maps with their respective E and B modes
     elif TEB_maps:
@@ -394,8 +399,8 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             all_maps[i] = one_map_set
             
             #Printing how many maps have been finished (it can seem slow)
-            if np.mod(i,100) == 0:
-                print i,
+            #if np.mod(i,100) == 0:
+                #print i,
             
     #This part makes phi maps only
     elif phi_map:
@@ -414,11 +419,13 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             all_maps[i] = one_map_set
             
             #Printing how many maps have been finished (it can seem slow)
-            if np.mod(i,100) == 0:
-                print i,
+            #if np.mod(i,100) == 0:
+                #print i,
+
+    maps_generation_time = time.time()
         
     else:
         print("What type of maps did you want?")
         return None
     
-    return all_maps
+    return [function_time, seeds_time, maps_generation_time], all_maps

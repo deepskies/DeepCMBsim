@@ -348,7 +348,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
     elif temp_only:
     
         #Creating an array to store all of the maps
-        all_maps = np.zeros([num_maps,1,int(pixels),int(pixels)])
+        all_maps = np.zeros([num_maps,int(pixels),int(pixels)])
         
         #Print statement for counting
         print "Number of maps generated: ",
@@ -433,11 +433,11 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
                 print i+1,
-
-    maps_generation_time = time.time()
         
     else:
         print("What type of maps did you want?")
         return None
     
-    return [function_time, seeds_time, maps_generation_time], all_maps
+    maps_generation_time = time.time()
+
+    return all_maps, [function_start_time, seeds_time, maps_generation_time]

@@ -24,10 +24,10 @@ degrees = 5.
 fmi = fcs.map_parameters(pixels, degrees, projection="AIR")
 reso = float(degrees)/pixels #resolution in degrees
 dx = reso*numpy.pi/180.0 #resolution in radians
-num_maps = 10
-output = "TQU"
+num_maps = 50
+output = "TEB"
 spectra_loc = "./base_plikHM_TTTEEE_lowl_lowE_lensing_scalCls.dat"
-timing = False
+timing = True
 delete = True
 
 print("Finished setting parameters")
@@ -43,12 +43,12 @@ print("Finished loading spectra")
 
 spectra_time = time.time()
 
-unlensed_maps_timing, tqu_maps = fcs.generate_maps(spectra_dict, fmi, num_maps, pixels, TQU_maps=True)
+tqu_maps, unlensed_maps_timing = fcs.generate_maps(spectra_dict, fmi, num_maps, pixels, TQU_maps=True)
 print("Finished generating unlensed maps")
 
 unlensed_maps_time = time.time()
 
-phi_maps_timing, phi_maps = fcs.generate_maps(spectra_dict, fmi, 1, pixels, phi_map=True)
+phi_maps, phi_maps_timing = fcs.generate_maps(spectra_dict, fmi, num_maps, pixels, phi_map=True)
 print("Finished generating phi maps")
 
 phi_maps_time = time.time()
@@ -68,22 +68,26 @@ if delete:
    del tqu_maps
    del phi_maps
 
-x = numpy.arange(6)
-y = numpy.zeros((6))
+x = numpy.arange(8)
+y = numpy.zeros((8))
 y[0] = parameters_time - start_time
 y[1] = spectra_time - parameters_time
-y[2] = unlensed_maps_time - spectra_time
-y[3] = phi_maps_time - unlensed_maps_time
-y[4] = load_apod_mask_time - phi_maps_time
-y[5] = lens_maps_time - load_apod_mask_time
+y[2] = unlensed_maps_timing[1] - spectra_time             #unlensed maps random seeds
+y[3] = unlensed_maps_timing[2] - unlensed_maps_timing[1]  #namaster map generation
+y[4] = phi_maps_timing[1] - unlensed_maps_timing[2]         #phi map random seeds
+y[5] = phi_maps_timing[2] - phi_maps_timing[1]                #namaster map generation
+y[6] = load_apod_mask_time - phi_maps_timing[2]
+y[7] = lens_maps_time - load_apod_mask_time
 
 
 if timing:
+    """
     plt.bar(x, y)
     plt.xlabel("Checkpoint #")
     plt.ylabel("Time (s)")
     plt.title("Timing for %d Lensed %s Map" %(num_maps,output))
     plt.savefig("figures/timing_%d_%s_map.png" %(num_maps,output))
+    """
 
     numpy.save("timing_data/timing_%d_%s_data.dat"%(num_maps,output), y)
 

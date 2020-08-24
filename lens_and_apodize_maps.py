@@ -159,9 +159,8 @@ def lens_maps(cmb_maps, phi_maps, dx, input_type="TQU", output_type="TQU", apodi
     Input maps are assumed to be .npy files.
     For a set of temperature maps, the expected dimension is (num_maps, 3, nx, nx)
     For a set of phi maps, the expected dimension is (num_maps, nx, nx)
-    For just one map, the expected dimension is (3, nx, nx)
-    For just one phi map, the expected dimension is (nx, nx)
     """
+
     #Checking for the right number of maps
     assert(cmb_maps.ndim == phi_maps.ndim+1), "You need to have the same number of CMB map sets and phi maps."
 
@@ -175,20 +174,18 @@ def lens_maps(cmb_maps, phi_maps, dx, input_type="TQU", output_type="TQU", apodi
 
     nx = numpy.shape(cmb_maps)[-1]
 
-    #Adding an extra dimension if only one map
-    if num_maps == 1:
-       cmb_maps = numpy.expand_dims(cmb_maps, axis=0)
-       phi_maps = numpy.expand_dims(phi_maps, axis=0)
-
     #Creating structure for output maps
     output_maps = numpy.zeros((num_maps, 3, nx, nx))
+
+    #Print statement to check number of maps lensed
+    print "Number of maps lensed: ",
 
     #Beginning loop for lensing
     print("Beginning lensing process. Number of map sets lensed:")
     for i in range(0,num_maps):
 
        if numpy.mod(i,100) == 0:
-          print i, #print(i, end = ", ") #<--Python3 print statement
+          print i+1, #print(i, end = ", ") #<--Python3 print statement
 
        #Loading phi map into QuickLens class structure
        phi_fft = load_phi(phi_maps[i], nx, dx)
@@ -249,7 +246,7 @@ def load_phi(phi_map, nx, dx, is_fft=False):
 
        #Calculating FFT
        phi_fft = numpy.fft.rfft2(phi_map)*tfac
-       
+
        #Loading into QuickLens class structure
        phi_map_fft = ql.maps.rfft(nx, dx, fft=phi_fft)
 

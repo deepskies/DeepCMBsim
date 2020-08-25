@@ -465,4 +465,4 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
     
     maps_generation_time = time.time()
 
-    return all_maps, [function_start_time, maps_generation_time]
+    return all_maps #, [function_start_time, maps_generation_time]

@@ -68,16 +68,16 @@ if delete:
    del tqu_maps
    del phi_maps
 
-x = numpy.arange(8)
-y = numpy.zeros((8))
+x = numpy.arange(6)
+y = numpy.zeros((6))
 y[0] = parameters_time - start_time
 y[1] = spectra_time - parameters_time
-y[2] = unlensed_maps_timing[1] - spectra_time             #unlensed maps random seeds
-y[3] = unlensed_maps_timing[2] - unlensed_maps_timing[1]  #namaster map generation
-y[4] = phi_maps_timing[1] - unlensed_maps_timing[2]         #phi map random seeds
-y[5] = phi_maps_timing[2] - phi_maps_timing[1]                #namaster map generation
-y[6] = load_apod_mask_time - phi_maps_timing[2]
-y[7] = lens_maps_time - load_apod_mask_time
+#y[2] = unlensed_maps_timing[1] - spectra_time             #unlensed maps random seeds
+y[2] = unlensed_maps_timing[1] - unlensed_maps_timing[0]  #namaster map generation
+#y[4] = phi_maps_timing[1] - unlensed_maps_timing[2]         #phi map random seeds
+y[3] = phi_maps_timing[1] - phi_maps_timing[0]                #namaster map generation
+y[4] = load_apod_mask_time - phi_maps_timing[1]
+y[5] = lens_maps_time - load_apod_mask_time
 
 
 if timing:
@@ -89,6 +89,6 @@ if timing:
     plt.savefig("figures/timing_%d_%s_map.png" %(num_maps,output))
     """
 
-    numpy.save("timing_data/timing_%d_%s_data.dat"%(num_maps,output), y)
+    numpy.save("timing_data/timing_%d_%s_data_new-rng"%(num_maps,output), y)
 
 exit()

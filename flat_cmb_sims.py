@@ -333,11 +333,6 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         else:
             input_seeds = give_seeds
 
-    #If no seeds are given, randomly generate some seeds
-    else:
-        input_seeds = random.sample(range(0, 50000000), num_maps)
-
-    seeds_time = time.time()
 
     #Making sure we know what type of maps we're making
     if sum([temp_only, TQU_maps, TEB_maps, phi_map])>1:
@@ -355,9 +350,15 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
  
         #Loop to create all maps
         for i in range(0,num_maps):
-            
-            #Creating each individual map
-            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clTT"]],[0], seed=input_seeds[i])
+
+            #Creating map if seeds are not set            
+            if give_seeds is None:
+                #Creating each individual map
+                one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clTT"]],[0], seed=random.randint(0,50000000))
+
+            else:
+                #Creating each individual map
+                one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clTT"]],[0], seed=input_seeds[i])
 
             #Saving map in index i of array
             all_maps[i] = one_map_set
@@ -378,9 +379,17 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         
         #Loop to create all maps
         for i in range(0,num_maps):
-            
-            #Creating *one set* of temperature maps plus its Q and U maps
-            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,2],seed=input_seeds[i])
+
+            #Creating map if seeds are not set            
+            if give_seeds is None:
+           
+                #Creating *one set* of temperature maps plus its Q and U maps
+                one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,2],seed=random.randint(0,50000000))
+
+            else:
+           
+                #Creating *one set* of temperature maps plus its Q and U maps
+                one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,2],seed=input_seeds[i])
             
             #Saving all three maps in index i of array
             all_maps[i] = one_map_set
@@ -400,10 +409,18 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         
         #Loop to create all maps
         for i in range(0,num_maps):
+
+            #Creating map if seeds are not set            
+            if give_seeds is None:
+ 
+                #Creating *one set* of temperature maps plus its E and B maps
+                one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,0,0], seed=random.randint(0,50000000))
             
-            #Creating *one set* of temperature maps plus its E and B maps
-            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,0,0], seed=input_seeds[i])
-            
+            else:
+
+                #Creating *one set* of temperature maps plus its E and B maps
+                one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad,np.array([spectra_dict["clTT"], spectra_dict["clTE"], spectra_dict["clTB"], spectra_dict["clEE"], spectra_dict["clEB"], spectra_dict["clBB"]]),[0,0,0], seed=input_seeds[i])
+
             #Saving all three maps in index i of aray
             all_maps[i] = one_map_set
             
@@ -424,9 +441,17 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         #If these maps look odd, you may have forgotten to nomalize the phi spectrum from CAMB, which is done automatically using load_cmb_spectra.
         for i in range(0,num_maps):
             
-            #Creating one phi (gravitational deflection) map
-            one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clPP"]],[0], seed=input_seeds[i])
+            #Creating map if seeds are not set            
+            if give_seeds is None:
+
+                #Creating one phi (gravitational deflection) map
+                one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clPP"]],[0], seed=random.randint(0,50000000))
             
+            else:
+
+                #Creating one phi (gravitational deflection) map
+                one_map_set = nmt.synfast_flat(int(fmi.nx),int(fmi.ny),fmi.lx_rad,fmi.ly_rad, [spectra_dict["clPP"]],[0], seed=input_seeds[i])
+
             #Saving map to index i of array
             all_maps[i] = one_map_set
             
@@ -440,4 +465,4 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
     
     maps_generation_time = time.time()
 
-    return all_maps, [function_start_time, seeds_time, maps_generation_time]
+    return all_maps, [function_start_time, maps_generation_time]

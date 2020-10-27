@@ -68,43 +68,71 @@ def add_zeroed_modes(spectrum, l_array=False):
         concatenated_spectrum = np.concatenate(([0,1],spectrum))
     return concatenated_spectrum
 
-def load_cmb_spectra(location, fix_scaling=True, add_zeroed=True):
+def load_cmb_spectra(location, fix_scaling=None, add_zeroed=True, lensedCls=False):
     """
     Loading in pregenerated spectra using CAMB The file has l-modes plus the
     following spectra are respectively: Temperature-Temperature, E mode-E mode,
     Temperature-E mode cross spectrum, Phi-Phi, Phi-Temperature cross
     """
-    l_modes, clTTa, clEEa, clTEa, clPPa, clPTa = np.loadtxt(location, unpack=True)
+    if not lensedCls:
+         #loading in spectra *not* containing BB spectrum, usually with suffix `_scalCls.dat`
+         l_modes, clTTa, clEEa, clTEa, clPPa, clPTa = np.loadtxt(location, unpack=True)
+         
+         #creating dictionairy to hold spectra
+         cmb_spectra = {"l modes":l_modes, "clTT":clTTa, "clEE":clEEa, "clPP":clPPa, "clPT":clPTa, "clTE":clTEa}
     
+    elif lensedCls:
+         #loading in spectra con
+         l_modes, clTTa, clEEa, clBBa, clTEa = np.loadtxt(location, unpack=True)
+
+         #creating dictionary to hold spectra
+         cmb_spectra = {"l modes":l_modes, "clTT":clTTa, "clEE":clEEa, "clBB":clBBa, "clTE":clTEa}
+
     #CAMB scales spectra, so we fix that before feeding it into the map generation code
     if fix_scaling:
-        clTTb = clTTa /((l_modes*(l_modes+1)/(2*np.pi)))
-        clEEb = clEEa /((l_modes*(l_modes+1)/(2*np.pi)))
-        clTEb = clTEa /((l_modes*(l_modes+1)/(2*np.pi)))
-        clPPb = clPPa / (l_modes**4 * (2.726 * 1e6)**2)
-        clPTb = clPTa / (l_modes**4 * (2.726 * 1e6)**2)
-    
-    #The simulation codes expect the l modes to start at 0, but CAMB has the lowest l-mode being 2.
-    #Therefore, we add 0's to represent the lowest two modes below
+
+        for keyword in cmb_spectra.keys():
+
+            if keyword == "clPP" or keyword == "clPT":
+                 cmb_spectra[keyword] = cmb_spectra[keyword] / (cmb_spectra["l modes"]**4 * fix_scaling)
+
+            elif keyword == "l modes":
+                 continue
+
+            else:
+                 cmb_spectra[keyword] = cmb_spectra[keyword] / ((cmb_spectra["l modes"]*(cmb_spectra["l modes"]+1)/(2*np.pi)))
+
+    #We have to add 2 zeros in to account for CAMB starting at an l-mode of 2
     if add_zeroed:
-        l_modes = add_zeroed_modes(l_modes, l_array=True)
-        clTT = add_zeroed_modes(clTTb)
-        clEE = add_zeroed_modes(clEEb)
-        clTE = add_zeroed_modes(clTEb)
-        clPP = add_zeroed_modes(clPPb)
-        clPT = add_zeroed_modes(clPTb)
-        
-        #We then load the scaled spectra with added zeroes into a dictionary:
-        cmb_spectra = {"l modes":l_modes, "clTT":clTT, "clTE":clTE, "clEE":clEE, "clPP":clPP, "clPT":clPT}
-        
-    elif fix_scaling:
-        #If we don't want to add the zeroes (perhaps they were already added to the file), we load the scaled spectra only
-        cmb_spectra = {"l modes":l_modes, "clTT":clTTb, "clTE":clTEb, "clEE":clEEb, "clPP":clPPb, "clPT":clPTb}
-        
-    else:
-        cmb_spectra = {"l modes":l_modes, "clTT":clTTa, "cleTE":clTEa, "clEE":clEEa, "clPP":clPPa, "clPT":clPTa}
+
+         for keyword in cmb_spectra.keys():
+
+             if keyword == "l modes":
+                  cmb_spectra[keyword] = add_zeroed_modes(cmb_spectra[keyword], l_array=True)
+
+             else:
+                  cmb_spectra[keyword] = add_zeroed_modes(cmb_spectra[keyword])
+
     return cmb_spectra
-    
+
+def combine_spectra(spectra_without_BB, spectra_with_BB):
+    """
+    Combining spectra so we can include BB spectra in our estimates
+    """
+    #The spectra may go to higher l-modes, even with the same .ini file
+    new_length = min(len(spectra_without_BB["l modes"]), len(spectra_with_BB["l modes"]))
+
+    new_spectra = {}
+    new_spectra["l modes"] = spectra_without_BB["l modes"][:new_length]
+    new_spectra["clTT"] = spectra_without_BB["clTT"][:new_length]
+    new_spectra["clTE"] = spectra_without_BB["clTE"][:new_length]
+    new_spectra["clEE"] = spectra_without_BB["clEE"][:new_length]
+    new_spectra["clPP"] = spectra_without_BB["clPP"][:new_length]
+    new_spectra["clPT"] = spectra_without_BB["clPT"][:new_length]
+    new_spectra["clBB"] = spectra_with_BB["clBB"][:new_length]
+
+    return new_spectra
+ 
 def spectrum_plot(l_modes, spectrum, title):
     """
     Function for plotting spectrum
@@ -346,7 +374,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         all_maps = np.zeros([num_maps,int(pixels),int(pixels)])
         
         #Print statement for counting
-        print "Number of maps generated: ",
+        print("Number of maps generated: ")
  
         #Loop to create all maps
         for i in range(0,num_maps):
@@ -365,7 +393,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
 
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print i+1,
+                print(i+1)
             
         
     #This part makes temperature maps with their respective Q and U modes
@@ -375,7 +403,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         all_maps = np.zeros([num_maps,3,int(pixels),int(pixels)])
 
         #Print statement for counting
-        print "Number of maps generated: ",
+        print("Number of maps generated: ")
         
         #Loop to create all maps
         for i in range(0,num_maps):
@@ -396,7 +424,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print i+1,
+                print(i+1)
 
     #This part makes temperature maps with their respective E and B modes
     elif TEB_maps:
@@ -405,7 +433,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         all_maps = np.zeros([num_maps,3,int(pixels),int(pixels)])
 
         #Print statement for counting
-        print "Number of maps generated: ",
+        print("Number of maps generated: ")
         
         #Loop to create all maps
         for i in range(0,num_maps):
@@ -426,7 +454,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print i+1,
+                print(i+1)
            
     #This part makes phi maps only
     elif phi_map:
@@ -435,7 +463,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         all_maps = np.zeros([num_maps,int(pixels),int(pixels)])
 
         #Print statement for counting
-        print "Number of maps generated: ",
+        print("Number of maps generated: ")
         
         #Loop to create all maps
         #If these maps look odd, you may have forgotten to nomalize the phi spectrum from CAMB, which is done automatically using load_cmb_spectra.
@@ -457,7 +485,7 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
             
             #Printing how many maps have been finished (it can seem slow)
             if np.mod(i,100) == 0:
-                print i+1,
+                print(i+1)
         
     else:
         print("What type of maps did you want?")

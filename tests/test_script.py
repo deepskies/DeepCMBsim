@@ -8,11 +8,9 @@ start_time = time.time()
 import sys
 sys.path.append("/home/samanthausman/quicklens")
 sys.path.append("/home/samanthausman/quicklens/quicklens")
-import quicklens as ql
 import numpy
 import matplotlib.pyplot as plt
-import matplotlib
-import lens_and_apodize_maps as lens
+from simcmb import lens_and_apodize_maps as lens
 
 imports_time = time.time()
 

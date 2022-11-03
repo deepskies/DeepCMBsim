@@ -10,7 +10,7 @@ sys.path.append("/home/samanthausman/quicklens")
 sys.path.append("/home/samanthausman/quicklens/quicklens")
 import numpy
 import matplotlib.pyplot as plt
-from simcmb import lens_and_apodize_maps as lens
+from legacy import lens_and_apodize_maps as lens
 
 imports_time = time.time()
 

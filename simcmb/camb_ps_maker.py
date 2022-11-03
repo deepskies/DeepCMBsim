@@ -2,7 +2,10 @@ import os, camb, json, sys
 import numpy as np
 from datetime import datetime as dt
 
-flags = ''.join([x for x in sys.argv if '-' in x])
+"""
+Code to create many power spectra from CAMB.
+Uses the .ini file in inifiles/ as a baseline, then iterates over the ranges in sim_ranges.json
+"""
 
 # _parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 _basedir = os.path.join(os.getcwd())
@@ -15,6 +18,8 @@ base_pars.max_l, base_pars.max_l_tensor = max_l_calc, max_l_calc
 
 with open(os.path.join(_basedir, 'sim_ranges.json'), 'r') as j:
     j_data = json.load(j)
+
+flags = ''.join([x for x in sys.argv if '-' in x])
 
 # the following line determines the normalization of the C_ell's
 # if this evaluates to False, which is the default, then the output

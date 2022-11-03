@@ -1,9 +1,5 @@
 # simcmb
 
-To-Do:
+Code for delensing the CMB.
 
-• Generate unlensed maps with NaMaster
-
-• Generate lensing map with NaMaster
-
-• Lens skies using QuickLens
+This code relies on `camb` to generate power spectra and `namaster` to simulate CMB temperature maps. Then we use the simulation-based inference code `sbi` to train a machine learning algorithm to extract fundamental physics parameters from (noisy, lensed) CMB maps.

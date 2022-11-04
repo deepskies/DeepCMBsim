@@ -2,10 +2,13 @@ import os, camb, json, sys
 import numpy as np
 from datetime import datetime as dt
 
-flags = ''.join([x for x in sys.argv if '-' in x])
+"""
+Code to create many power spectra from CAMB.
+Uses the .ini file in inifiles/ as a baseline, then iterates over the ranges in sim_ranges.json
+"""
 
-# _parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-_basedir = os.path.join(os.getcwd())
+_parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+_basedir = os.getcwd()
 
 base_pars = camb.read_ini(os.path.join(_basedir, 'inifiles', 'planck_2018_1e4.ini'))
 
@@ -13,8 +16,10 @@ max_l_calc, max_l_use = 10100, 10000
 
 base_pars.max_l, base_pars.max_l_tensor = max_l_calc, max_l_calc
 
-with open(os.path.join(_basedir, 'sim_ranges.json'), 'r') as j:
+with open(os.path.join(_basedir, 'inifiles/sim_ranges.json'), 'r') as j:
     j_data = json.load(j)
+
+flags = ''.join([x for x in sys.argv if '-' in x])
 
 # the following line determines the normalization of the C_ell's
 # if this evaluates to False, which is the default, then the output
@@ -48,7 +53,7 @@ for rr in np.logspace(j_data['log10_r']['low'], j_data['log10_r']['high'], j_dat
         if cls_raw:
             namestr += "_rawCl"
 
-        np.save(os.path.join(_basedir, "psfiles", namestr), outarr)
+        np.save(os.path.join(_parentdir, "../psfiles", namestr), outarr)
 
 tb = dt.now()
 

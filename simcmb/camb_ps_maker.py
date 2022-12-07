@@ -44,7 +44,7 @@ saveflatmap = True if (('save' in flags) and (('flat' in flags) or ('fm' in flag
 
 ta = dt.now()
 
-rr, aa = np.float(sys.argv[1]), np.float(sys.argv[2])
+rr, aa = float(sys.argv[1]), float(sys.argv[2])
 
 base_pars.InitPower.r, base_pars.Alens = 10**rr, aa
 
@@ -83,7 +83,7 @@ if saveflatmap:
     sim_map = nmt.synfast_flat(int(fmi.nx), int(fmi.ny), fmi.lx_rad, fmi.ly_rad, [tt], [0], seed=0)
 #    final step here: figure out how to save this image
 else:
-    np.save(os.path.join(_parentdir, "../psfiles", namestr), outarr)
+    np.save(os.path.join(_parentdir, "psfiles", namestr), outarr)
 
 tb = dt.now()
 

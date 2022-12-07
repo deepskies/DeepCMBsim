@@ -10,7 +10,7 @@ Code to create a single power spectrum or map from CAMB and/or namaster
 Uses the .ini file in inifiles/ as a baseline, changes r and A_lens
 """
 
-_parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+# _parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 _basedir = os.getcwd()
 
 base_pars = camb.read_ini(os.path.join(_basedir, 'inifiles', 'planck_2018_1e4.ini'))
@@ -87,10 +87,11 @@ if saveflatmap:
     sim_map = nmt.synfast_flat(int(fmi.nx), int(fmi.ny), fmi.lx_rad, fmi.ly_rad, [tt], [0], seed=0)
 #    final step here: figure out how to save this image
 else:
-    np.savetxt(os.path.join(_parentdir, j_data['outfiles'], namestr), outarr,
-               header="d = " + dt.strftime(dt.now(), '%a, %b %d %Y, %I:%M:%S.%f %p') +
-                      "\nusing log_10(r) = " + f'{rr:0.2f}' + ", A = " + f'{aa:0.2f}' +
-                      '\nconfigured with json file ' + str(j_data))
+    np.savetxt(os.path.join(_basedir, j_data['outfiles'], namestr + '.txt'), outarr,
+               # header="d = " + dt.strftime(dt.now(), '%a, %b %d %Y, %I:%M:%S.%f %p') +
+               #        "\nusing log_10(r) = " + f'{rr:0.2f}' + ", A = " + f'{aa:0.2f}' +
+               #        '\nconfigured with json file ' + str(j_data)
+               )
 
 tb = dt.now()
 

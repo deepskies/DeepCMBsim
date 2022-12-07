@@ -1,6 +1,7 @@
 import os
 import camb
 import sys
+import json
 import numpy as np
 from datetime import datetime as dt
 
@@ -9,7 +10,7 @@ Code to create a single power spectrum or map from CAMB and/or namaster
 Uses the .ini file in inifiles/ as a baseline, changes r and A_lens
 """
 
-_parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+# _parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 _basedir = os.getcwd()
 
 base_pars = camb.read_ini(os.path.join(_basedir, 'inifiles', 'planck_2018_1e4.ini'))
@@ -44,7 +45,10 @@ saveflatmap = True if (('save' in flags) and (('flat' in flags) or ('fm' in flag
 
 ta = dt.now()
 
-rr, aa = float(sys.argv[1]), float(sys.argv[2])
+with open(os.path.join(_basedir, 'inifiles/config.json'), 'r') as j:
+    j_data = json.load(j)
+
+rr, aa = j_data['log10_r'], j_data['Alens']
 
 base_pars.InitPower.r, base_pars.Alens = 10**rr, aa
 
@@ -56,7 +60,7 @@ lvals = range(max_l_use + 1)
 
 outarr = np.array([lvals, tt, ee, bb, te, pp, pt, pe]).T
 
-namestr = "lr" + f'{np.log10(rr):0.2f}' + "_A" + f'{aa:0.2f}' + "_d" + dt.strftime(dt.now(), '%y%m%d')
+namestr = "lr" + f'{rr:0.2f}' + "_A" + f'{aa:0.2f}' + "_d" + dt.strftime(dt.now(), '%y%m%d')
 if cls_raw:
     namestr += "_rawCl"
 
@@ -83,7 +87,11 @@ if saveflatmap:
     sim_map = nmt.synfast_flat(int(fmi.nx), int(fmi.ny), fmi.lx_rad, fmi.ly_rad, [tt], [0], seed=0)
 #    final step here: figure out how to save this image
 else:
-    np.save(os.path.join(_parentdir, "psfiles", namestr), outarr)
+    np.savetxt(os.path.join(_basedir, j_data['outfiles'], namestr + '.txt'), outarr,
+               header="originally written at " + dt.strftime(dt.now(), '%a, %b %d %Y, %I:%M:%S.%f %p') +
+                      "\nusing log10(r) = " + f'{rr:0.2f}' + ", A = " + f'{aa:0.2f}' +
+                      '\nconfigured with json file ' + str(j_data)
+               )
 
 tb = dt.now()
 

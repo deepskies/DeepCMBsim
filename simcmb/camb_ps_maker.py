@@ -1,10 +1,12 @@
-import os, camb, json, sys
+import os
+import camb
+import sys
 import numpy as np
 from datetime import datetime as dt
 
 """
-Code to create many power spectra from CAMB.
-Uses the .ini file in inifiles/ as a baseline, then iterates over the ranges in sim_ranges.json
+Code to create a single power spectrum or map from CAMB and/or namaster
+Uses the .ini file in inifiles/ as a baseline, changes r and A_lens
 """
 
 _parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
@@ -15,9 +17,6 @@ base_pars = camb.read_ini(os.path.join(_basedir, 'inifiles', 'planck_2018_1e4.in
 max_l_calc, max_l_use = 10100, 10000
 
 base_pars.max_l, base_pars.max_l_tensor = max_l_calc, max_l_calc
-
-with open(os.path.join(_basedir, 'inifiles/sim_ranges.json'), 'r') as j:
-    j_data = json.load(j)
 
 flags = ''.join([x for x in sys.argv if '-' in x])
 
@@ -35,25 +34,56 @@ cls_raw = True if (('raw' in flags) and ('cl' in flags)) else False
 # This does not affect PT or PE, which are kept unitless.
 units = None if (('dimensionless' in flags) and ('TT' in flags)) else 'muK'
 
+# the following line determines the normalization of the C_ell's
+# if this evaluates to False, which is the default, then the output
+# power spectra include ell*(ell+1)/2/π for TT, EE, BB, TE and
+# [ell*(ell+1)]**2/2/π for the PP, PT, and PE
+# Tried to make it user-friendly so that you can write anything
+# as long as it has both "raw" and "cl"
+saveflatmap = True if (('save' in flags) and (('flat' in flags) or ('fm' in flags))) else False
+
 ta = dt.now()
 
-for rr in np.logspace(j_data['log10_r']['low'], j_data['log10_r']['high'], j_data['log10_r']['steps']):
-    for aa in np.linspace(j_data['Alens']['low'], j_data['Alens']['high'], j_data['Alens']['steps']):
-        base_pars.InitPower.r, base_pars.Alens = rr, aa
+rr, aa = float(sys.argv[1]), float(sys.argv[2])
 
-        results = camb.get_results(base_pars)
+base_pars.InitPower.r, base_pars.Alens = 10**rr, aa
 
-        tt, ee, bb, te = results.get_total_cls(raw_cl=cls_raw, CMB_unit=units).T
-        pp, pt, pe = results.get_lens_potential_cls(raw_cl=cls_raw)[:max_l_use + 1].T
-        lvals = range(max_l_use + 1)
+results = camb.get_results(base_pars)
 
-        outarr = np.array([lvals, tt, ee, bb, te, pp, pt, pe]).T
+tt, ee, bb, te = results.get_total_cls(raw_cl=cls_raw, CMB_unit=units).T
+pp, pt, pe = results.get_lens_potential_cls(raw_cl=cls_raw)[:max_l_use + 1].T
+lvals = range(max_l_use + 1)
 
-        namestr = "lr" + f'{np.log10(rr):0.2f}' + "_A" + f'{aa:0.2f}' + "_d" + dt.strftime(dt.now(), '%y%m%d')
-        if cls_raw:
-            namestr += "_rawCl"
+outarr = np.array([lvals, tt, ee, bb, te, pp, pt, pe]).T
 
-        np.save(os.path.join(_parentdir, "../psfiles", namestr), outarr)
+namestr = "lr" + f'{np.log10(rr):0.2f}' + "_A" + f'{aa:0.2f}' + "_d" + dt.strftime(dt.now(), '%y%m%d')
+if cls_raw:
+    namestr += "_rawCl"
+
+if saveflatmap:
+    import flatmaps as fm
+    from astropy.wcs import WCS
+    import pymaster as nmt
+    pixels = 192.  # 192 pixels on each side
+    side = 5  # 5 degrees on each side
+    reso = side / pixels
+    reso_arcmin = reso * 60
+    dx = reso * np.pi / 180.0  # Resolution in radians
+    lmax = 180. / reso  # Maximum l-mode achievable given these parameters
+    lstep = lmax * 2 / pixels
+    tfac = dx / pixels  # converts from pixels to radians
+    w = WCS(naxis=2)
+    nx = int(pixels)
+    ny = int(pixels)
+    w.wcs.crpix = [nx / 2, ny / 2]  # Center pixel X, Y
+    w.wcs.cdelt = np.array([-reso, reso])
+    w.wcs.crval = [0, 0]  # Center coordinates RA, DEC at 0,0
+    w.wcs.ctype = ["RA---AIR", "DEC--AIR"]  # Airy projection; can be adjusted. Previous used Azimuthal equal-area
+    fmi = fm.FlatMapInfo(w, nx=nx, ny=ny, lx=side, ly=side)
+    sim_map = nmt.synfast_flat(int(fmi.nx), int(fmi.ny), fmi.lx_rad, fmi.ly_rad, [tt], [0], seed=0)
+#    final step here: figure out how to save this image
+else:
+    np.save(os.path.join(_parentdir, "psfiles", namestr), outarr)
 
 tb = dt.now()
 

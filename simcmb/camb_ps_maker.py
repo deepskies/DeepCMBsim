@@ -88,8 +88,8 @@ if saveflatmap:
 #    final step here: figure out how to save this image
 else:
     np.savetxt(os.path.join(_basedir, j_data['outfiles'], namestr + '.txt'), outarr,
-               header="d = " + dt.strftime(dt.now(), '%a, %b %d %Y, %I:%M:%S.%f %p') +
-                      "\nusing log_10(r) = " + f'{rr:0.2f}' + ", A = " + f'{aa:0.2f}' +
+               header="originally written at " + dt.strftime(dt.now(), '%a, %b %d %Y, %I:%M:%S.%f %p') +
+                      "\nusing log10(r) = " + f'{rr:0.2f}' + ", A = " + f'{aa:0.2f}' +
                       '\nconfigured with json file ' + str(j_data)
                )
 

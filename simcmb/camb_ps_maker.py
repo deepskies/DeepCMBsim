@@ -87,10 +87,10 @@ if saveflatmap:
     sim_map = nmt.synfast_flat(int(fmi.nx), int(fmi.ny), fmi.lx_rad, fmi.ly_rad, [tt], [0], seed=0)
 #    final step here: figure out how to save this image
 else:
-    np.save(os.path.join(_parentdir, j_data['outfiles'], namestr), outarr,
-            header="d = " + dt.strftime(dt.now(), '%a, %b %d %Y, %I:%M:%S.%f %p') + \
-                   "\nusing log_10(r) = " + f'{rr:0.2f}' + ", A = " + f'{aa:0.2f}' + \
-                   '\nconfigured with json file ' + str(j_data))
+    np.savetxt(os.path.join(_parentdir, j_data['outfiles'], namestr), outarr,
+               header="d = " + dt.strftime(dt.now(), '%a, %b %d %Y, %I:%M:%S.%f %p') +
+                      "\nusing log_10(r) = " + f'{rr:0.2f}' + ", A = " + f'{aa:0.2f}' +
+                      '\nconfigured with json file ' + str(j_data))
 
 tb = dt.now()
 

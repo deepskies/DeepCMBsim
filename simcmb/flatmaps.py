@@ -28,7 +28,7 @@ class FlatMapInfo(object):
             self.nx = int(self.lx / np.abs(self.wcs.wcs.cdelt[0])) + 1
         else:
             self.nx = nx
-            self.lx = np.fabs(nx * self.wcs.wcs.cdelt[0], dtype=int)
+            self.lx = int(np.fabs(nx * self.wcs.wcs.cdelt[0]))
         self.dx = self.lx / self.nx
         
         if ny is None:
@@ -36,7 +36,7 @@ class FlatMapInfo(object):
             self.ny = int(self.ly / np.abs(self.wcs.wcs.cdelt[1])) + 1
         else:
             self.ny = ny
-            self.ly = np.fabs(ny * self.wcs.wcs.cdelt[1], dtype=int)
+            self.ly = int(np.fabs(ny * self.wcs.wcs.cdelt[1]))
         self.dy = self.ly / self.ny
         
         self.lx_rad = self.lx * np.pi / 180
@@ -488,8 +488,8 @@ class FlatMapInfo(object):
         
         return kmean, cls * dkvol
     
-    def synfast(self, larr, cls):
-        
+    def synfast(self, larr, cls, seed=None):
+
         if cls.ndim == 1:
             scalar_input = True
         else:
@@ -501,15 +501,15 @@ class FlatMapInfo(object):
         inv_dkvol = self.lx_rad * self.ly_rad / (2 * np.pi)**2
         fft_norm = 2 * np.pi * self.nx * self.ny / (self.lx_rad * self.ly_rad)
         
-        def synalm_single(clmap):
+        def synalm_single(clmap, seed=seed):
             sqclmap = np.sqrt(clmap * inv_dkvol / 2.)
-            
-            alm_r = np.random.randn(self.ny, self.nx / 2 + 1) * sqclmap
-            alm_i = np.random.randn(self.ny, self.nx / 2 + 1) * sqclmap
+            np.random.seed(seed)
+            alm_r = np.random.randn(self.ny, self.nx // 2 + 1) * sqclmap
+            alm_i = np.random.randn(self.ny, self.nx // 2 + 1) * sqclmap
             alm = alm_r + 1j * alm_i
             alm[0, 0] = alm_r[0, 0] * np.sqrt(2.)
-            alm[:self.ny / 2, 0] = alm_r[:self.ny / 2, 0] + 1j * alm_i[:self.ny / 2, 0]
-            alm[self.ny / 2:, 0] = alm_r[self.ny / 2:, 0] + 1j * alm_i[self.ny / 2:, 0]
+            alm[:self.ny // 2, 0] = alm_r[:self.ny // 2, 0] + 1j * alm_i[:self.ny // 2, 0]
+            alm[self.ny // 2:, 0] = alm_r[self.ny // 2:, 0] + 1j * alm_i[self.ny // 2:, 0]
             return alm
         
         if scalar_input:
@@ -518,7 +518,7 @@ class FlatMapInfo(object):
             mps = np.fft.irfft2(alms, s = [self.ny, self.nx]) * fft_norm
             return mps.flatten()
         else:
-            cls_maps = np.zeros([self.ny, self.nx / 2 + 1, 3, 3])
+            cls_maps = np.zeros([self.ny, self.nx // 2 + 1, 3, 3])
             
             def get_cl_map(cl):
                 clf = interp1d(larr, cl, kind = 'linear', bounds_error = False, fill_value = 0)

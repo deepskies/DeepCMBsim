@@ -489,7 +489,7 @@ class FlatMapInfo(object):
         return kmean, cls * dkvol
     
     def synfast(self, larr, cls, seed=None):
-        
+
         if cls.ndim == 1:
             scalar_input = True
         else:
@@ -503,7 +503,7 @@ class FlatMapInfo(object):
         
         def synalm_single(clmap, seed=seed):
             sqclmap = np.sqrt(clmap * inv_dkvol / 2.)
-            
+            np.random.seed(seed)
             alm_r = np.random.randn(self.ny, self.nx // 2 + 1) * sqclmap
             alm_i = np.random.randn(self.ny, self.nx // 2 + 1) * sqclmap
             alm = alm_r + 1j * alm_i

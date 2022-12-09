@@ -28,7 +28,7 @@ class FlatMapInfo(object):
             self.nx = int(self.lx / np.abs(self.wcs.wcs.cdelt[0])) + 1
         else:
             self.nx = nx
-            self.lx = np.fabs(nx * self.wcs.wcs.cdelt[0], dtype=int)
+            self.lx = int(np.fabs(nx * self.wcs.wcs.cdelt[0]))
         self.dx = self.lx / self.nx
         
         if ny is None:
@@ -36,7 +36,7 @@ class FlatMapInfo(object):
             self.ny = int(self.ly / np.abs(self.wcs.wcs.cdelt[1])) + 1
         else:
             self.ny = ny
-            self.ly = np.fabs(ny * self.wcs.wcs.cdelt[1], dtype=int)
+            self.ly = int(np.fabs(ny * self.wcs.wcs.cdelt[1]))
         self.dy = self.ly / self.ny
         
         self.lx_rad = self.lx * np.pi / 180

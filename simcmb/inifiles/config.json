@@ -1,5 +1,8 @@
 {
   "log10_r": -2.0,
   "Alens": 1.05,
+  "cl_raw": 0,
+  "TT_dimensionless": 1,
+  "verbose": 1,
   "outfiles": "outfiles"
 }

@@ -19,38 +19,16 @@ max_l_calc, max_l_use = 10100, 10000
 
 base_pars.max_l, base_pars.max_l_tensor = max_l_calc, max_l_calc
 
-flags = ''.join([x for x in sys.argv if '-' in x])
-
-# the following line determines the normalization of the C_ell's
-# if this evaluates to False, which is the default, then the output
-# power spectra include ell*(ell+1)/2/π for TT, EE, BB, TE and
-# [ell*(ell+1)]**2/2/π for the PP, PT, and PE
-# Tried to make it user-friendly so that you can write anything
-# as long as it has both "raw" and "cl"
-cls_raw = True if (('raw' in flags) and ('cl' in flags)) else False
-
-# the following line determines the units of the TT and TE columns
-# if this evaluates to 'muK', which is the default, then the output
-# power spectra for TT carry units of µK^2 and for TE carry µK.
-# This does not affect PT or PE, which are kept unitless.
-units = None if (('dimensionless' in flags) and ('TT' in flags)) else 'muK'
-
-# the following line determines the normalization of the C_ell's
-# if this evaluates to False, which is the default, then the output
-# power spectra include ell*(ell+1)/2/π for TT, EE, BB, TE and
-# [ell*(ell+1)]**2/2/π for the PP, PT, and PE
-# Tried to make it user-friendly so that you can write anything
-# as long as it has both "raw" and "cl"
-saveflatmap = True if (('save' in flags) and (('flat' in flags) or ('fm' in flags))) else False
-
-ta = dt.now()
-
 with open(os.path.join(_basedir, 'inifiles/config.json'), 'r') as j:
     j_data = json.load(j)
+
+cls_raw, units = bool(j_data['cls_raw']), bool(j_data['TT_dimensionless'])
 
 rr, aa = j_data['log10_r'], j_data['Alens']
 
 base_pars.InitPower.r, base_pars.Alens = 10**rr, aa
+
+ta = dt.now()
 
 results = camb.get_results(base_pars)
 
@@ -95,6 +73,6 @@ else:
 
 tb = dt.now()
 
-if 'v' in flags:
+if bool(j_data["verbose"]):
     print('from', dt.strftime(ta, '%H:%M:%S.%f %P'), 'to', dt.strftime(tb, '%H:%M:%S.%f %P'), 'or', end=" ")
     print(str((tb - ta).seconds) + '.' + str((tb - ta).microseconds), 'seconds total')

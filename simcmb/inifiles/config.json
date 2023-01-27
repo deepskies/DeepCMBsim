@@ -1,8 +1,8 @@
 {
   "log10_r": -2.0,
   "Alens": 1.05,
-  "cls_raw": 1,
-  "TT_dimensionless": 'muK',
+  "cls_raw": 0,
+  "TT_dimension": "muK",
   "verbose": 1,
   "outfiles": "outfiles"
 }

@@ -12,9 +12,9 @@ Uses the .ini file in inifiles/ as a baseline, changes r and A_lens
 
 # _parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 _basedir = os.getcwd()
-try:
-    _inidir = os.path.join(_basedir, 'inifiles.ini')
-except Exception:
+if 'inifiles' in os.listdir():
+    _inidir = os.path.join(_basedir, 'inifiles')
+else:
     _basedir = os.path.join(_basedir, 'simcmb')
     _inidir = os.path.join(_basedir, 'inifiles')
 
@@ -25,7 +25,7 @@ with open(os.path.join(_inidir, 'config.json'), 'r') as j:
     j_data = json.load(j)
 _outdir = os.path.join(_basedir, j_data['outfiles'])
 
-cls_raw, units = bool(j_data['cls_raw']), j_data['TT_dimensionless']
+cls_raw, units = bool(j_data['cls_raw']), j_data['TT_dimension']
 
 rr, aa = j_data['log10_r'], j_data['Alens']
 

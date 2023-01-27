@@ -12,15 +12,20 @@ Uses the .ini file in inifiles/ as a baseline, changes r and A_lens
 
 # _parentdir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 _basedir = os.getcwd()
+try:
+    _inidir = os.path.join(_basedir, 'inifiles.ini')
+except Exception:
+    _basedir = os.path.join(_basedir, 'simcmb')
+    _inidir = os.path.join(_basedir, 'inifiles')
 
-base_pars = camb.read_ini(os.path.join(_basedir, 'inifiles', 'planck_2018_1e4.ini'))
-
+base_pars = camb.read_ini(os.path.join(_inidir, 'planck_2018_1e4.ini'))
 max_l_use = int(base_pars.max_l - 100) #according to the CAMB documentation, errors affect the last "100 or so" multipoles
 
-with open(os.path.join(_basedir, 'inifiles/config.json'), 'r') as j:
+with open(os.path.join(_inidir, 'config.json'), 'r') as j:
     j_data = json.load(j)
+_outdir = os.path.join(_basedir, j_data['outfiles'])
 
-cls_raw, units = bool(j_data['cls_raw']), bool(j_data['TT_dimensionless'])
+cls_raw, units = bool(j_data['cls_raw']), j_data['TT_dimensionless']
 
 rr, aa = j_data['log10_r'], j_data['Alens']
 
@@ -29,22 +34,20 @@ base_pars.InitPower.r, base_pars.Alens = 10**rr, aa
 if bool(j_data["verbose"]):
     ta = dt.now()
 results = camb.get_results(base_pars)
+tt, ee, bb, te = results.get_total_cls(raw_cl=cls_raw, CMB_unit=units).T
+pp, pt, pe = results.get_lens_potential_cls(raw_cl=cls_raw)[:max_l_use + 1].T
+lvals = range(max_l_use + 1)
+outarr = np.array([lvals, tt, ee, bb, te, pp, pt, pe]).T
 if bool(j_data["verbose"]):
     tb = dt.now()
     print('from', dt.strftime(ta, '%H:%M:%S.%f %P'), 'to', dt.strftime(tb, '%H:%M:%S.%f %P'), 'or', end=" ")
     print(str((tb - ta).seconds) + '.' + str((tb - ta).microseconds), 'seconds total')
 
-tt, ee, bb, te = results.get_total_cls(raw_cl=cls_raw, CMB_unit=units).T
-pp, pt, pe = results.get_lens_potential_cls(raw_cl=cls_raw)[:max_l_use + 1].T
-lvals = range(max_l_use + 1)
-
-outarr = np.array([lvals, tt, ee, bb, te, pp, pt, pe]).T
-
 namestr = "lr" + f'{rr:0.2f}' + "_A" + f'{aa:0.2f}' + "_d" + dt.strftime(dt.now(), '%y%m%d')
 if cls_raw:
     namestr += "_rawCl"
 
-outfilename = os.path.join(_basedir, j_data['outfiles'], namestr)
+outfilename = os.path.join(_outdir, namestr)
 
 def saveflatmap():
     if bool(j_data["verbose"]):

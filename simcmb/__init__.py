@@ -3,4 +3,4 @@ code for delensing the CMB and extracting r and Alens even in the presence of sy
 """
 
 from simcmb import *
-from camb_ps_maker.py import *
+from camb_ps_maker import *

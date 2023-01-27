@@ -8,7 +8,7 @@ setuptools.setup(
     description="code for simulating and delensing the cmb",
     packages=["simcmb"],
     url="https://github.com/deepskies/simcmb",
-    install_requires=["setuptools", "camb", "pymaster"],
+    install_requires=["setuptools", "camb", "namaster", "astropy"],
     package_data={
         "simcmb": ["inifiles/*"],
     }

@@ -76,10 +76,15 @@ def load_cmb_spectra(location, fix_scaling=None, add_zeroed=True, lensedCls=Fals
     """
     if not lensedCls:
          #loading in spectra *not* containing BB spectrum, usually with suffix `_scalCls.dat`
-         l_modes, clTTa, clEEa, clTEa, clPPa, clPTa = np.loadtxt(location, unpack=True)
-         
+         clin = np.loadtxt(location, unpack=True)
+         if len(clin)==6:
+             l_modes, clTTa, clEEa, clTEa, clPPa, clPTa = clin
+         elif len(clin)==8:
+             l_modes, clTTa, clEEa, clBBa, clTEa, clPPa, clPTa, clPEa = clin
+         else:
+             print("that's some weird values bro")
          #creating dictionairy to hold spectra
-         cmb_spectra = {"l modes":l_modes, "clTT":clTTa, "clEE":clEEa, "clPP":clPPa, "clPT":clPTa, "clTE":clTEa}
+         cmb_spectra = {"l modes":l_modes, "clTT":clTTa, "clEE":clEEa, "clBB":clBBa, "clPP":clPPa, "clPT":clPTa, "clTE":clTEa, "clPE":clPEa}
     
     elif lensedCls:
          #loading in spectra con

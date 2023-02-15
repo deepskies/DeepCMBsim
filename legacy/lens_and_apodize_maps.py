@@ -88,13 +88,13 @@ class tebmap(ql.maps.pix):
         #Calculating FFT of E & B maps
         tfft, efft, bfft = self.get_rfft()
 
-	#Calculating l-modes in x- and y- directions
-	lx, ly = efft.get_lxly()
+        #Calculating l-modes in x- and y- directions
+        lx, ly = efft.get_lxly()
 
-	#Calculating angle
-	tpi  = 2.*numpy.arctan2(lx, -ly)
+        #Calculating angle
+        tpi  = 2.*numpy.arctan2(lx, -ly)
 
-	#Calculating FFT conversion factor
+        #Calculating FFT conversion factor
         tfac = numpy.sqrt((self.dx * self.dy) / (self.nx * self.ny))
 
         #Calculating Q & U Maps
@@ -107,7 +107,7 @@ class tebmap(ql.maps.pix):
     def get_tebfft(self):
         """ return a QuickLens tebfft object """
         #Getting tebfft object
-	ret = tebfft( self.nx, self.dx, ny = self.ny, dy = self.dy)
+        ret = tebfft( self.nx, self.dx, ny = self.ny, dy = self.dy)
 
         #Calculating frequency-domain/spacial-domain conversion factor
         tfac = numpy.sqrt((self.dx * self.dy) / (self.nx * self.ny))
@@ -135,23 +135,22 @@ def plot_map(skymap, title, colorscheme="viridis", save_loc="figures/", filename
      return fig 
 
 def get_tebmap(tqumap):
-     """Function for getting tebmap object from tqumap object"""
-     #Calculating FFT/spacial map conversion factor
-     tfac = numpy.sqrt((tqumap.dx**2) /(tqumap.nx**2))
+    """Function for getting tebmap object from tqumap object"""
+    #Calculating FFT/spacial map conversion factor
+    tfac = numpy.sqrt((tqumap.dx**2) /(tqumap.nx**2))
 
-     #Getting FFT object for TEB
-     teb_fft = tqumap.get_teb()
+    #Getting FFT object for TEB
+    teb_fft = tqumap.get_teb()
 
-     #Inverse FFT to get maps
-     emap = numpy.fft.irfft2(teb_fft.efft)/tfac
-     bmap = numpy.fft.irfft2(teb_fft.bfft)/tfac
+    #Inverse FFT to get maps
+    emap = numpy.fft.irfft2(teb_fft.efft)/tfac
+    bmap = numpy.fft.irfft2(teb_fft.bfft)/tfac
 
-     #Loading into tebmap structure
-     teb_map = tebmap(tqumap.nx, tqumap.dx, [tqumap.tmap, emap, bmap])
+    #Loading into tebmap structure
+    teb_map = tebmap(tqumap.nx, tqumap.dx, [tqumap.tmap, emap, bmap])
 
-     return teb_map
+    return teb_map
 
-def lens_maps(cmb_maps, phi_maps, dx, input_type="TQU", output_type="TQU", apodize_mask=[]):
     """
     Function for lensing multiple sets of maps. Takes set of maps (either T, Q
     & U maps or T, E, & B maps with a phi map) and lenses them, returning
@@ -178,14 +177,14 @@ def lens_maps(cmb_maps, phi_maps, dx, input_type="TQU", output_type="TQU", apodi
     output_maps = numpy.zeros((num_maps, 3, nx, nx))
 
     #Print statement to check number of maps lensed
-    print "Number of maps lensed: ",
+    print("Number of maps lensed: ")
 
     #Beginning loop for lensing
     print("Beginning lensing process. Number of map sets lensed:")
     for i in range(0,num_maps):
 
        if numpy.mod(i,100) == 0:
-          print i+1, #print(i, end = ", ") #<--Python3 print statement
+          print(i, end = ", ") #<--Python3 print statement
 
        #Loading phi map into QuickLens class structure
        phi_fft = load_phi(phi_maps[i], nx, dx)

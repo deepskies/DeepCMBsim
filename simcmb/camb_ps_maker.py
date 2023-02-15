@@ -30,9 +30,11 @@ class PS_Maker(object):
 
         self.cls_raw, self.units = bool(self.j_data['cls_raw']), self.j_data['TT_dimension']
 
-        self.rr, self.aa = self.j_data['log10_r'], self.j_data['Alens']
-
-        self.base_pars.InitPower.r, self.base_pars.Alens = 10**self.rr, self.aa
+        # self.rr, self.aa = self.j_data['log10_r'], self.j_data['Alens']
+        #
+        # self.base_pars.InitPower.r, self.base_pars.Alens = 10**self.rr, self.aa
+        for X in self.j_data.keys():
+            self.base_pars.X = j_data[str(X)]
 
         if bool(self.j_data["verbose"]):
             self.ta = dt.now()

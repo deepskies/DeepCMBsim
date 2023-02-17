@@ -1,4 +1,6 @@
 import os
+import re
+
 import camb
 import json
 import numpy as np
@@ -34,7 +36,20 @@ class PS_Maker(object):
         #
         # self.base_pars.InitPower.r, self.base_pars.Alens = 10**self.rr, self.aa
         for X in self.j_data.keys():
-            self.base_pars.X = j_data[str(X)]
+            sX = re.split("\.", X)
+            try:
+                if len(sX) == 1:
+                    getattr(self.base_pars, X)
+                    setattr(self.base_pars, X, self.j_data[X])
+                    print(X, getattr(self.base_pars, X))
+                elif len(sX) == 2:
+                    getattr(getattr(self.base_pars, sX[0]), sX[1])
+                    setattr(getattr(self.base_pars, sX[0]), sX[1], self.j_data[X])
+                    print(X, getattr(getattr(self.base_pars, sX[0]), sX[1]))
+                # for k in range(len(sX)):
+                    #recursively getattr: seems like a while loop should work, but it's a bit tricky because you don't want to overwrite self.base_pars
+            except Exception:
+                continue
 
         if bool(self.j_data["verbose"]):
             self.ta = dt.now()
@@ -48,7 +63,7 @@ class PS_Maker(object):
             print('from', dt.strftime(self.ta, '%H:%M:%S.%f %P'), 'to', dt.strftime(self.tb, '%H:%M:%S.%f %P'), end=" ")
             print('or', str((self.tb - self.ta).seconds) + '.' + str((self.tb - self.ta).microseconds), 'seconds total')
 
-        self.namestr = "lr" + f'{self.rr:0.2f}' + "_A" + f'{self.aa:0.2f}' + "_d" + dt.strftime(dt.now(), '%y%m%d')
+        self.namestr = "lr" + f'{self.base_pars.InitPower.r:0.2f}' + "_A" + f'{self.base_pars.Alens:0.2f}' + "_d" + dt.strftime(dt.now(), '%y%m%d')
         if self.cls_raw:
             self.namestr += "_rawCl"
 

@@ -1,6 +1,7 @@
 {
-  "log10_r": -2.0,
+  "InitPower.r": 0.01,
   "Alens": 1.05,
+  "DoLensing": 1,
   "cls_raw": 0,
   "TT_dimension": "muK",
   "verbose": 1,

@@ -25,7 +25,10 @@ import random
 import time
 
 def simple_visit_fn(a, b, d):
-    d[a] = np.array(b)
+    try:
+        _, d[a] = len(b), np.array(b)
+    except Exception:
+        d[a] = bool(b)
 
 def hassign(file, outdict):
     with h5py.File(file, "r") as f:
@@ -86,29 +89,27 @@ def load_cmb_spectra(location, fix_scaling=None, add_zeroed=True, lensedCls=Fals
     cmb_spectra['l'] = cmb_spectra['l'].astype(int)
 
     #CAMB scales spectra, so we fix that before feeding it into the map generation code
-    if fix_scaling:
-
+    if fix_scaling is not None:
         for keyword in cmb_spectra.keys():
-
             if keyword == "clPP" or keyword == "clPT":
                  cmb_spectra[keyword] = cmb_spectra[keyword] / (cmb_spectra["l modes"]**4 * fix_scaling)
-
             elif keyword == "l modes":
                  continue
-
-            else:
+            elif "c" in keyword:
                  cmb_spectra[keyword] = cmb_spectra[keyword] / ((cmb_spectra["l modes"]*(cmb_spectra["l modes"]+1)/(2*np.pi)))
 
     #We have to add 2 zeros in to account for CAMB starting at an l-mode of 2
-    first_modes = np.sum([x[:2] for x in cmb_spectra.values()])
+    first_modes = 0
+    for x in cmb_spectra:
+        try:
+            first_modes += np.sum(x[:2])
+        except Exception:
+            continue
     add_zeroed = (first_modes>1)
     if add_zeroed:
-
          for keyword in cmb_spectra.keys():
-
              if keyword == "l modes":
                   cmb_spectra[keyword] = add_zeroed_modes(cmb_spectra[keyword], l_array=True)
-
              else:
                   cmb_spectra[keyword] = add_zeroed_modes(cmb_spectra[keyword])
 

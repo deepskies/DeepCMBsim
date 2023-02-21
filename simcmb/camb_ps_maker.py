@@ -41,11 +41,9 @@ class PS_Maker(object):
                 if len(sX) == 1:
                     getattr(self.base_pars, X)
                     setattr(self.base_pars, X, self.j_data[X])
-                    print(X, getattr(self.base_pars, X))
                 elif len(sX) == 2:
                     getattr(getattr(self.base_pars, sX[0]), sX[1])
                     setattr(getattr(self.base_pars, sX[0]), sX[1], self.j_data[X])
-                    print(X, getattr(getattr(self.base_pars, sX[0]), sX[1]))
                 # for k in range(len(sX)):
                     #recursively getattr: seems like a while loop should work, but it's a bit tricky because you don't want to overwrite self.base_pars
             except Exception:
@@ -62,6 +60,7 @@ class PS_Maker(object):
         self.outdict = {}
         for i in range(len(self.outlabs)):
             self.outdict[self.outlabs[i]] = self.outarr[i]
+        self.outdict['lensed_CLs'] = self.base_pars.DoLensing
 
         if bool(self.j_data["verbose"]):
             self.tb = dt.now()

@@ -56,7 +56,7 @@ class PS_Maker(object):
         self.pp, self.pt, self.pe = self.results.get_lens_potential_cls(raw_cl=self.cls_raw)[:self.max_l_use + 1].T
         self.lvals = range(self.max_l_use + 1)
         self.outarr = np.array([self.lvals, self.tt, self.ee, self.bb, self.te, self.pp, self.pt, self.pe])
-        self.outlabs = ['l', 'cTT', 'cEE', 'cBB', 'cTE', 'cPP', 'cPT', 'cPE']
+        self.outlabs = ['l', 'clTT', 'clEE', 'clBB', 'clTE', 'clPP', 'clPT', 'clPE']
         self.outdict = {}
         for i in range(len(self.outlabs)):
             self.outdict[self.outlabs[i]] = self.outarr[i]

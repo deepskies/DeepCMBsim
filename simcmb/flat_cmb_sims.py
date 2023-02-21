@@ -17,12 +17,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib
-import random
+import h5py
 import flatmaps as fm
 from astropy.wcs import WCS
 from scipy.interpolate import interp1d
 import random
 import time
+
+def simple_visit_fn(a, b, d):
+    d[a] = np.array(b)
+
+def hassign(file, outdict):
+    with h5py.File(file, "r") as f:
+        f.visititems(lambda x, y: simple_visit_fn(x, y, outdict))
 
 #Defining functions
 def build_checkerboard(w, h) :
@@ -74,24 +81,9 @@ def load_cmb_spectra(location, fix_scaling=None, add_zeroed=True, lensedCls=Fals
     following spectra are respectively: Temperature-Temperature, E mode-E mode,
     Temperature-E mode cross spectrum, Phi-Phi, Phi-Temperature cross
     """
-    if not lensedCls:
-         #loading in spectra *not* containing BB spectrum, usually with suffix `_scalCls.dat`
-         clin = np.loadtxt(location, unpack=True)
-         if len(clin)==6:
-             l_modes, clTTa, clEEa, clTEa, clPPa, clPTa = clin
-         elif len(clin)==8:
-             l_modes, clTTa, clEEa, clBBa, clTEa, clPPa, clPTa, clPEa = clin
-         else:
-             print("that's some weird values bro")
-         #creating dictionairy to hold spectra
-         cmb_spectra = {"l modes":l_modes, "clTT":clTTa, "clEE":clEEa, "clBB":clBBa, "clPP":clPPa, "clPT":clPTa, "clTE":clTEa, "clPE":clPEa}
-    
-    elif lensedCls:
-         #loading in spectra con
-         l_modes, clTTa, clEEa, clBBa, clTEa = np.loadtxt(location, unpack=True)
-
-         #creating dictionary to hold spectra
-         cmb_spectra = {"l modes":l_modes, "clTT":clTTa, "clEE":clEEa, "clBB":clBBa, "clTE":clTEa}
+    cmb_spectra = {}
+    hassign(location, cmb_spectra)
+    cmb_spectra['l'] = cmb_spectra['l'].astype(int)
 
     #CAMB scales spectra, so we fix that before feeding it into the map generation code
     if fix_scaling:
@@ -108,6 +100,8 @@ def load_cmb_spectra(location, fix_scaling=None, add_zeroed=True, lensedCls=Fals
                  cmb_spectra[keyword] = cmb_spectra[keyword] / ((cmb_spectra["l modes"]*(cmb_spectra["l modes"]+1)/(2*np.pi)))
 
     #We have to add 2 zeros in to account for CAMB starting at an l-mode of 2
+    first_modes = np.sum([x[:2] for x in cmb_spectra.values()])
+    add_zeroed = (first_modes>1)
     if add_zeroed:
 
          for keyword in cmb_spectra.keys():
@@ -222,15 +216,17 @@ def calculate_power_spectrum(input_map, fmi, bin_num=80, pixels=192, lstep=72, m
         map_power_2D = calculate_map_power_2D(input_map, fmi, real=False)
 
         #Dividing data into four quarters, rotating so lowest mode is in top left quarter
-        quarter1 = map_power_2D[:int(pixels/2),:int(pixels/2)]
+        halfpix = pixels//2
 
-        quarter2 = map_power_2D[:int(pixels/2),int(pixels/2+1):]
+        quarter1 = map_power_2D[:halfpix, :halfpix]
+
+        quarter2 = map_power_2D[:halfpix, halfpix:]
         quarter2 = np.rot90(quarter2)
 
-        quarter3 = map_power_2D[int(pixels/2+1):,:int(pixels/2)]
+        quarter3 = map_power_2D[halfpix:, :halfpix]
         quarter3 = np.rot90(quarter3, k=3)
 
-        quarter4 = map_power_2D[int(pixels/2+1):,int(pixels/2+1):]
+        quarter4 = map_power_2D[halfpix:, halfpix:]
         quarter4 = np.rot90(quarter4, k=2)
 
         #Creating empty arrays:
@@ -269,7 +265,7 @@ def calculate_power_spectrum(input_map, fmi, bin_num=80, pixels=192, lstep=72, m
                     left_bin_edge = np.where(bin_edges <= point_on_circ)[0][-1] #largest bin that's smaller than overall l-mode
             
                     #Add power from that pixel to spectrum estimate
-                    spectra_est[left_bin_edge] += map_power_2D[i,j] #adding power at coordinate (i,j) to bin
+                    spectra_est[left_bin_edge] += quarter[i,j] #adding power at coordinate (i,j) to bin
             
                     #Tally the pixel as being in this particular been (for averaging later)
                     n[left_bin_edge] += 1 #counting the number of points in the bin for averaging later

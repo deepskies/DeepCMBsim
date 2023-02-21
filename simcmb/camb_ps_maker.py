@@ -1,10 +1,10 @@
 import os
 import re
-
 import camb
 import json
 import numpy as np
 from datetime import datetime as dt
+import h5py
 
 """
 Code to create a single power spectrum or map from CAMB and/or namaster
@@ -57,7 +57,12 @@ class PS_Maker(object):
         self.tt, self.ee, self.bb, self.te = self.results.get_total_cls(raw_cl=self.cls_raw, CMB_unit=self.units).T
         self.pp, self.pt, self.pe = self.results.get_lens_potential_cls(raw_cl=self.cls_raw)[:self.max_l_use + 1].T
         self.lvals = range(self.max_l_use + 1)
-        self.outarr = np.array([self.lvals, self.tt, self.ee, self.bb, self.te, self.pp, self.pt, self.pe]).T
+        self.outarr = np.array([self.lvals, self.tt, self.ee, self.bb, self.te, self.pp, self.pt, self.pe])
+        self.outlabs = ['l', 'cTT', 'cEE', 'cBB', 'cTE', 'cPP', 'cPT', 'cPE']
+        self.outdict = {}
+        for i in range(len(self.outlabs)):
+            self.outdict[self.outlabs[i]] = self.outarr[i]
+
         if bool(self.j_data["verbose"]):
             self.tb = dt.now()
             print('from', dt.strftime(self.ta, '%H:%M:%S.%f %P'), 'to', dt.strftime(self.tb, '%H:%M:%S.%f %P'), end=" ")
@@ -99,8 +104,11 @@ class PS_Maker(object):
             print(str((tb - ta).seconds) + '.' + str((tb - ta).microseconds), 'seconds total')
 
     def savecls(self):
-        np.savetxt(self.outfilename + '.txt', self.outarr,
-                   header="originally written at " + dt.strftime(dt.now(), '%a, %b %d %Y, %I:%M:%S.%f %p') +
-                          # "\nusing log10(r) = " + f'{rr:0.2f}' + ", A = " + f'{aa:0.2f}' +
-                          '\nconfigured with json file ' + str(self.j_data)
-                   )
+        # np.savetxt(self.outfilename + '.txt', self.outarr,
+        #            header="originally written at " + dt.strftime(dt.now(), '%a, %b %d %Y, %I:%M:%S.%f %p') +
+        #                   # "\nusing log10(r) = " + f'{rr:0.2f}' + ", A = " + f'{aa:0.2f}' +
+        #                   '\nconfigured with json file ' + str(self.j_data)
+        #            )
+        with h5py.File(self.outfilename + '.h5', 'w') as f:
+            for k, v in self.outdict.items():
+                f.create_dataset(k, data = v)

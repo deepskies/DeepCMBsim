@@ -351,12 +351,12 @@ def generate_maps(spectra_dict, fmi, num_maps, pixels, temp_only=False, TQU_maps
         spectra_dict["clTB"]
     except Exception:
         print("no TB power spectrum; putting in a placeholder")
-        spectra_dict["clTB"] = spectra_dict["clBB"]
+        spectra_dict["clTB"] = np.zeros_like(spectra_dict["clBB"])
     try:
         spectra_dict["clEB"]
     except Exception:
         print("no EB power spectrum; putting in a placeholder")
-        spectra_dict["clEB"] = spectra_dict["clBB"]
+        spectra_dict["clEB"] = np.zeros_like(spectra_dict["clBB"])
 
     #Checking if given seeds are valid 
     if give_seeds is not None:

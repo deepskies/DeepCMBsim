@@ -1,21 +1,13 @@
-"""
-taken from https://github.com/deepskies/deeperCMB/blob/main/utils/preprocessing.py
-"""
-
 import numpy as np
 
-def bl(fwhm_arcmin, lmax):
-    """ returns the map-level transfer function for a symmetric Gaussian beam.
-         * fwhm_arcmin      = beam full-width-at-half-maximum (fwhm) in arcmin.
-         * lmax             = maximum multipole.
+def white_noise(noise_uK_arcmin, fwhm_arcmin, lmax, TT=True, units_uK = True):
     """
-    ls = np.arange(0, lmax+1)
-    return np.exp( -(fwhm_arcmin * np.pi/180./60.)**2 / (16.*np.log(2.)) * ls*(ls+1.) )
-
-def white_noise(noise_uK_arcmin, fwhm_arcmin, lmax):
-    """ returns the beam-deconvolved noise power spectrum in units of uK^2 for
-         * noise_uK_arcmin = map noise level in uK.arcmin
-         * fwhm_arcmin     = beam full-width-at-half-maximum (fwhm) in arcmin.
-         * lmax            = maximum multipole.
+    implements Eq 8 of astro-ph/0111606 (Hu and Okamoto Astrophys.J. 574 (2002) 566-574)
+    based on Knox 1995 astro-ph/9504054 and Seljak and Zaldarriaga 1996 astro-ph/9609170
+    TT is True if the noise level is the noise of the temperature map, which is standard
     """
-    return (noise_uK_arcmin * np.pi/180./60.)**2 / bl(fwhm_arcmin, lmax)**2
+    noise_uK_arcmin = noise_uK_arcmin if TT else noise_uK_arcmin*np.sqrt(2)
+    noise_uK_arcmin = noise_uK_arcmin if units_uK else noise_uK_arcmin/2.72548e6
+    ells = np.arange(lmax)
+    arcmin_to_rad = np.pi / 180 / 60
+    return (noise_uK_arcmin * arcmin_to_rad)**2 * np.exp( ells * (ells + 1) * (fwhm_arcmin * arcmin_to_rad)**2 / (8 * np.log(2)) )

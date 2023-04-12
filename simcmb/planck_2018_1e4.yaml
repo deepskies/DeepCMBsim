@@ -1,20 +1,27 @@
 USERPARAMS:
   FORCAMB:
-    InitPower:
-      r : 0.01
-    Alens : 1.0
+#    InitPower:
+#      r : 0.01
+#    Alens : 1.0
     DoLensing : True
     max_l : 10500
     max_l_tensor : 10500
-  noise: white
+  rvals : [0.01, 0.1, 50]
+  Avals : [.8, 1.2, 50]
   seed: 0
   verbose: 1
-  infile_dir: "inifiles"
+  cls_raw: False
+  TT_dimension: muK
   outfile_dir: "outfiles"
+  noise: "white"
+  noise_level: 5 #uK*arcmin
+  beam_fwhm: 1 #arcmin
   lmax_use: 10000 #this differs from max_l and max_l_tensor because according to the CAMB documentation
   #errors affect the last "100 or so" multipoles
   #open question here: should we define the cutoff on l based on the beam size, eg min of 10000 and 180*60/beamsize?
 
+# see https://github.com/cmbant/CAMB/blob/master/inifiles/planck_2018.ini for detailed comments
+# see documentation for relationship between the .yaml parameters and the .ini parameters
 BASECAMBPARAMS:
   WantCls : True
   WantTransfer : False

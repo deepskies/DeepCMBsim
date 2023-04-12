@@ -1,4 +1,16 @@
 import numpy as np
+"""
+noise module that implements Eq 8 of astro-ph/0111606 (Hu and Okamoto Astrophys.J. 574 (2002) 566-574)
+also provides a maximum multipole given a beam size 
+"""
+
+def max_multipole(fwhm_arcmin, additional_factor=3):
+    """
+    this gives the maximum multipole advised to use given a certain beam size
+    the additional_factor is set because there is not a sharp cutoff at a certain multipole
+    for additional_factor = 3 (2) the noise has increased by roughly 7 (3) orders of magnitude from its low-l value
+    """
+    return 180*60*additional_factor/fwhm_arcmin
 
 def white_noise(noise_uK_arcmin, fwhm_arcmin, lmax, TT=True, units_uK = True):
     """

@@ -7,6 +7,7 @@ import noise
 
 """
 Code to create an array of power spectra from CAMB based on a yaml file
+includes noise, loops, and option to update parameters
 """
 
 class PS_Maker(object):

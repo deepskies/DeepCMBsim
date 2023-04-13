@@ -13,7 +13,7 @@ USERPARAMS:
   cls_raw: False
   TT_dimension: muK
   outfile_dir: "outfiles"
-  noise: "white"
+  noise_type: "white"
   noise_level: 5 #uK*arcmin
   beam_fwhm: 1 #arcmin
   lmax_use: 10000 #this differs from max_l and max_l_tensor because according to the CAMB documentation

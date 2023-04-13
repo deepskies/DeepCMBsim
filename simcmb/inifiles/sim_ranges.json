@@ -1,4 +1,0 @@
-{
-  "log10_r": {"low": -5, "high": -1, "steps": 10},
-  "Alens": {"low": 0.8, "high": 1.2, "steps": 10}
-}

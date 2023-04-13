@@ -24,7 +24,7 @@ class PS_Maker(object):
 
     def get_noise(self):
         if self.Ydictu['noise_type'] == 'white':
-            return noise.white_noise(self.Ydictu['noise_level'], self.Ydictu['beam_fwhm'], self.max_l_use, TT=True, units_uK=True), noise.white_noise(self.Ydictu['noise_level'], self.Ydictu['beam_fwhm'], self.max_l_use, TT=False, units_uK=False)
+            return noise.white_noise(self.Ydictu['noise_level'], self.Ydictu['beam_fwhm'], self.max_l_use, TT=True), noise.white_noise(self.Ydictu['noise_level'], self.Ydictu['beam_fwhm'], self.max_l_use, TT=False)
         elif self.Ydictu['noise_type'] is None:
             return np.zeros(self.max_l_use)
         else:

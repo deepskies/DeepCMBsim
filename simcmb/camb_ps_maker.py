@@ -15,7 +15,8 @@ class PS_Maker(object):
         self.Ydictu = self.Ydict.user_params #just an alias
 
         # according to the CAMB documentation, errors affect the last "100 or so" multipoles
-        self.max_l_use = min(self.Ydictu['lmax_use'], noise.max_multipole(self.Ydictu['beam_fwhm']) )
+        self.max_l_use = int( min(self.Ydictu['max_l_use'], noise.max_multipole(self.Ydictu['beam_fwhm'])) )
+        self.Ydict.pars.max_l, self.Ydict.pars.max_l_tensor = int(self.max_l_use + self.Ydictu['extra_l']), int(self.max_l_use  + self.Ydictu['extra_l'])
 
         self._outdir = self.Ydictu['outfile_dir']
 
@@ -23,15 +24,15 @@ class PS_Maker(object):
 
     def get_noise(self):
         if self.Ydictu['noise_type'] == 'white':
-            return noise.white_noise(self.Ydictu['noise_level'], self.Ydictu['beam_fwhm'], self.max_l_use, TT=True, units_uK=True), noise.white_noise(self.Ydictu['noise_level'], self.Ydictu['beam_fwhm'], self.max_l_use, TT=False, units_uK=False)
+            return noise.white_noise(self.Ydictu['noise_level'], self.Ydictu['beam_fwhm'], self.max_l_use, TT=True), noise.white_noise(self.Ydictu['noise_level'], self.Ydictu['beam_fwhm'], self.max_l_use, TT=False)
         elif self.Ydictu['noise_type'] is None:
-            return 0.
+            return np.zeros(self.max_l_use)
         else:
             print("only white noise is currently implemented")
-            return 0.
+            return np.zeros(self.max_l_use)
 
     def get_namestr(self, cpars):
-        namestr = "r" + f'{cpars.InitPower.r:0.2f}' + "_A" + f'{cpars.Alens:0.2f}' + "_lmax" + str(self.max_l_use) + "_noise" + str(self.Ydictu['noise_level']) +"." + str(self.Ydictu['beam_fwhm'])
+        namestr = f"cls_camb_r{cpars.InitPower.r:0.2f}_A{cpars.Alens:0.2f}_lmax{self.max_l_use}_noise" + str(self.Ydictu['noise_level']) +"." + str(self.Ydictu['beam_fwhm'])
         if self.cls_raw:
             namestr += "_rawCl"
         return namestr
@@ -40,7 +41,7 @@ class PS_Maker(object):
         if bool(self.Ydictu["verbose"]):
             ta = dt.now()
         results = camb.get_results(cpars)
-        tt, ee, bb, te = results.get_total_cls(raw_cl=self.cls_raw, CMB_unit=self.units).T
+        tt, ee, bb, te = results.get_total_cls(raw_cl=self.cls_raw, CMB_unit=self.units)[:self.max_l_use + 1].T
         if self.Ydictu['noise_type'] is not None:
             noise = self.get_noise()
             tt += noise[0]
@@ -80,6 +81,13 @@ class PS_Maker(object):
                     if sum([namestr in x for x in os.listdir(self._outdir)])==0:
                         outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
                         savecls(outdict, os.path.join(self._outdir, namestr))
+
+    def update_vals(self, attr, new_val, incamb = False):
+        if incamb:
+            camb_attr = "Initpower."+attr if attr=="r" else attr
+            setattr(self.Ydict.pars, camb_attr, new_val)
+        else:
+            self.Ydictu[attr] = new_val
 
 def savecls(out_dict, out_name): #move this to yam_in.py
     with h5py.File(out_name + '.h5', 'w') as f:

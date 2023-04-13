@@ -81,6 +81,10 @@ class PS_Maker(object):
                         outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
                         savecls(outdict, os.path.join(self._outdir, namestr))
 
+    def update_vals(self, attr, new_val):
+        camb_attr = "Initpower."+attr if attr=="r" else attr
+        setattr(self.Ydict.pars, camb_attr, new_val)
+
 def savecls(out_dict, out_name): #move this to yam_in.py
     with h5py.File(out_name + '.h5', 'w') as f:
         for k, v in out_dict.items():

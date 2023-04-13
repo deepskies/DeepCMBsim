@@ -4,10 +4,10 @@ USERPARAMS:
 #      r : 0.01
 #    Alens : 1.0
     DoLensing : True
-    max_l : 10500
-    max_l_tensor : 10500
-  rvals : [0.01, 0.1, 50]
-  Avals : [.8, 1.2, 50]
+    max_l : 10100
+    max_l_tensor : 10100
+  rvals : [0.01, 0.1, 3]
+  Avals : [.8, 1.2, 3]
   seed: 0
   verbose: 1
   cls_raw: False

@@ -13,6 +13,7 @@ class flatmap(object):
         self.w.wcs.cdelt = np.array([-self.reso, self.reso])
         self.w.wcs.crval = [0, 0]  # Center coordinates RA, DEC at 0,0
         self.w.wcs.ctype = ["RA---AIR", "DEC--AIR"]  # Airy projection; can be adjusted. Previous used Azimuthal equal-area
+        self.xlabel, self.ylabel = "longitude", "latitude"
 
     def flatmap(self, cl_array = None, cl_name = None, spin = [0], seed = None):
         seed = seed if seed is not None else self.seed

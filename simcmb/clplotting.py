@@ -20,6 +20,9 @@ class flatmap(object):
                 cl_arr, spin_arr = np.array([self.cl_dict["clTT"], self.cl_dict["clTE"], np.zeros_like(self.cl_dict["clTE"]), self.cl_dict["clEE"], np.zeros_like(self.cl_dict["clTE"]), self.cl_dict["clBB"]]), [0, 0, 0]
             elif maps_out=='TQU': # the cl_arr has to be in a specific order; we enforce by hand that the two other cross spectra TB and EB are zero
                 cl_arr, spin_arr = np.array([self.cl_dict["clTT"], self.cl_dict["clTE"], np.zeros_like(self.cl_dict["clTE"]), self.cl_dict["clEE"], np.zeros_like(self.cl_dict["clTE"]), self.cl_dict["clBB"]]), [0, 2]
-            return self._flatmap(cl_arr, spin_arr, seed=seed)
+            try:
+                return self._flatmap(cl_arr, spin_arr, seed=seed)
+            except UnboundLocalError:
+                print("not a valid map specification")
         else:
             print("if you don't want to restrict to a `cl_dict` dictionary, use `self._flatmap` instead")

@@ -14,15 +14,19 @@ class flatmap(object):
 
     def flatmap(self, maps_out, seed = None):
         if self.cl_dict is not None:
-            if len(maps_out)==1:
+            if len(maps_out)==1 and maps_out in ["T", "E", "B", "P"]:
                 cl_arr, spin_arr = np.array([self.cl_dict["cl"+maps_out*2]]), [0]
+            elif (len(maps_out)==2) and maps_out in ["TT", "EE", "BB", "TE", "PP", "PT", "PE"]:
+                cl_arr, spin_arr = np.array([self.cl_dict["cl"+maps_out]]), [0]
+            elif (len(maps_out)==4) and maps_out[:2]=='cl' and (maps_out[2:] in ["TT", "EE", "BB", "TE", "PP", "PT", "PE"]):
+                cl_arr, spin_arr = np.array([self.cl_dict[maps_out]]), [0]
             elif maps_out=='TEB': # the cl_arr has to be in a specific order; we enforce by hand that the two other cross spectra TB and EB are zero
                 cl_arr, spin_arr = np.array([self.cl_dict["clTT"], self.cl_dict["clTE"], np.zeros_like(self.cl_dict["clTE"]), self.cl_dict["clEE"], np.zeros_like(self.cl_dict["clTE"]), self.cl_dict["clBB"]]), [0, 0, 0]
             elif maps_out=='TQU': # the cl_arr has to be in a specific order; we enforce by hand that the two other cross spectra TB and EB are zero
                 cl_arr, spin_arr = np.array([self.cl_dict["clTT"], self.cl_dict["clTE"], np.zeros_like(self.cl_dict["clTE"]), self.cl_dict["clEE"], np.zeros_like(self.cl_dict["clTE"]), self.cl_dict["clBB"]]), [0, 2]
-            try:
-                return self._flatmap(cl_arr, spin_arr, seed=seed)
-            except UnboundLocalError:
+            else:
                 print("not a valid map specification")
+                return None
+            return self._flatmap(cl_arr, spin_arr, seed=seed)
         else:
             print("if you don't want to restrict to a `cl_dict` dictionary, use `self._flatmap` instead")

@@ -18,8 +18,8 @@ class flatmap(object):
     def flatmap(self, cl_array = None, cl_name = None, spin = [0], seed = None):
         seed = seed if seed is not None else self.seed
         if cl_array is not None:
-            return nmt.synfast_flat(self.nx, self.ny, self.lx_rad, self.ly_rad, [cl_array], spin, seed = seed)
+            return nmt.synfast_flat(self.nx, self.ny, self.lx_rad, self.ly_rad, np.array([x for x in cl_array]), spin, seed = seed)
         elif (cl_name is not None) and (self.cl_dict is not None):
-            return nmt.synfast_flat(self.nx, self.ny, self.lx_rad, self.ly_rad, [self.cl_dict[x] for x in cl_name], spin, seed=seed)
+            return nmt.synfast_flat(self.nx, self.ny, self.lx_rad, self.ly_rad, np.array([self.cl_dict[x] for x in cl_name]), spin, seed=seed)
         else:
             print("need to specify Cls either with an array here or by passing a dictionary to the class and a name here")

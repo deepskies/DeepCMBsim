@@ -7,6 +7,7 @@ import noise
 
 """
 Code to create an array of power spectra from CAMB based on a yaml file
+includes noise, loops, and option to update parameters
 """
 
 class PS_Maker(object):
@@ -17,6 +18,7 @@ class PS_Maker(object):
         # according to the CAMB documentation, errors affect the last "100 or so" multipoles
         self.max_l_use = int( min(self.Ydictu['max_l_use'], noise.max_multipole(self.Ydictu['beam_fwhm'])) )
         self.Ydict.pars.max_l, self.Ydict.pars.max_l_tensor = int(self.max_l_use + self.Ydictu['extra_l']), int(self.max_l_use  + self.Ydictu['extra_l'])
+        # could make this^ its own function so that it gets recalculated even when you update params
 
         self._outdir = self.Ydictu['outfile_dir']
 

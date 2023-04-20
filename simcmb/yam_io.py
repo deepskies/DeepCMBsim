@@ -49,9 +49,9 @@ class Ydict(object):
         self.user_params = self.myyam['USERPARAMS']
 
 
-def savecls(all_sims, num_sims_to_save, out_name): #move this to yam_in.py
+def savecls(all_sims, sims_to_save_start, sims_to_save_end, out_name): #move this to yam_in.py
     with h5py.File(out_name + '.h5', 'a') as f:
-        for i in range(num_sims_to_save):
+        for i in range(sims_to_save_start, sims_to_save_end):
             out_dict = all_sims[i]
             for k, v in out_dict.items():
-                f.create_dataset(k, data = v)
+                f.create_dataset(str(i) + "/" + k, data = v)

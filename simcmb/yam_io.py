@@ -1,6 +1,7 @@
 import camb
 import yaml
 import numpy as np
+import h5py
 from collections.abc import Iterable
 
 class Ydict(object):

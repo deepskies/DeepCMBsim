@@ -2,7 +2,6 @@ import os
 import camb
 import numpy as np
 from datetime import datetime as dt
-import h5py
 import noise
 
 """

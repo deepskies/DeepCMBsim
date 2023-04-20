@@ -49,7 +49,7 @@ class Ydict(object):
         self.user_params = self.myyam['USERPARAMS']
 
 
-def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, permission = 'w'):
+def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, permission = 'r+', overwrite=False):
     if (sims_to_save_end is None) and (sims_to_save_start is None):
         sims_to_save_start = 0
         sims_to_save_end = len(all_sims)
@@ -57,4 +57,10 @@ def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, 
         for i in range(sims_to_save_start, sims_to_save_end):
             out_dict = all_sims[i]
             for k, v in out_dict.items():
-                f.create_dataset(f"r{out_dict['r']}/Alens{out_dict['Alens']}/" + k, data = v)
+                try:
+                    f.create_dataset(f"r{out_dict['r']}/Alens{out_dict['Alens']}/{k}", data = v)
+                except ValueError:
+                    if overwrite:
+                        f[f"r{out_dict['r']}/Alens{out_dict['Alens']}/{k}"] = v
+                    else:
+                        print(f"skipping because r{out_dict['r']}/Alens{out_dict['Alens']}/{k} already exists and overwrite set to False")

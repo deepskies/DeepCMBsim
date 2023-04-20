@@ -2,7 +2,6 @@ import os
 import camb
 import numpy as np
 from datetime import datetime as dt
-import h5py
 import noise
 
 """
@@ -86,13 +85,12 @@ class PS_Maker(object):
 
     def update_vals(self, attr, new_val, incamb = False):
         if incamb:
-            camb_attr = "Initpower."+attr if attr=="r" else attr
-            setattr(self.Ydict.pars, camb_attr, new_val)
+            if attr=="r":
+                setattr(self.Ydict.pars.InitPower, attr, new_val)
+            else:
+                setattr(self.Ydict.pars, attr, new_val)
         else:
             self.Ydictu[attr] = new_val
-
-def savecls(out_dict, out_name): #move this to yam_in.py
-    with h5py.File(out_name + '.h5', 'w') as f:
-        for k, v in out_dict.items():
-            f.create_dataset(k, data = v)
-
+        if "fwhm" in attr:
+            self.max_l_use = int(min(self.Ydictu['max_l_use'], noise.max_multipole(self.Ydictu['beam_fwhm'])))
+            self.Ydict.pars.max_l, self.Ydict.pars.max_l_tensor = int(self.max_l_use + self.Ydictu['extra_l']), int(self.max_l_use + self.Ydictu['extra_l'])

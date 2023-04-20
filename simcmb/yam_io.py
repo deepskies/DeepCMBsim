@@ -54,4 +54,4 @@ def savecls(all_sims, sims_to_save_start, sims_to_save_end, out_name): #move thi
         for i in range(sims_to_save_start, sims_to_save_end):
             out_dict = all_sims[i]
             for k, v in out_dict.items():
-                f.create_dataset(str(i) + "/" + k, data = v)
+                f.create_dataset(f"r{out_dict['r']}/Alens{out_dict['Alens']}/" + k, data = v)

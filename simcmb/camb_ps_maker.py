@@ -93,9 +93,3 @@ class PS_Maker(object):
         if "fwhm" in attr:
             self.max_l_use = int(min(self.Ydictu['max_l_use'], noise.max_multipole(self.Ydictu['beam_fwhm'])))
             self.Ydict.pars.max_l, self.Ydict.pars.max_l_tensor = int(self.max_l_use + self.Ydictu['extra_l']), int(self.max_l_use + self.Ydictu['extra_l'])
-
-def savecls(out_dict, out_name): #move this to yam_in.py
-    with h5py.File(out_name + '.h5', 'w') as f:
-        for k, v in out_dict.items():
-            f.create_dataset(k, data = v)
-

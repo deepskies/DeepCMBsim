@@ -85,8 +85,10 @@ class PS_Maker(object):
 
     def update_vals(self, attr, new_val, incamb = False):
         if incamb:
-            camb_attr = "Initpower."+attr if attr=="r" else attr
-            setattr(self.Ydict.pars, camb_attr, new_val)
+            if attr=="r":
+                setattr(self.Ydict.pars.InitPower, attr, new_val)
+            else:
+                setattr(self.Ydict.pars, attr, new_val)
         else:
             self.Ydictu[attr] = new_val
         if "fwhm" in attr:

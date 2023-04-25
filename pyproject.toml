@@ -148,3 +148,7 @@ dependencies = [ # Optional
 #        "simcmb": ["inifiles/*"],
 #    }
 #)
+
+[tool.setuptools]
+# ...
+package-dir = {"" = "simcmb"}

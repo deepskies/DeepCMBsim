@@ -68,8 +68,8 @@ class PS_Maker(object):
 
         return outdict
 
-    def loop_cls_rA(self, overwrite=False):
-        for rr in self.Ydict.rs: #for par in self.Ydict['pass parameter']
+    def loop_cls_rA(self, overwrite=False):#make this for general arguments!
+        for rr in self.Ydict.rs: #for par in self.Ydict['pass parameter'] - use itertools.product!
             self.Ydict.pars.InitPower.r = rr
             for aa in self.Ydict.As:
                 self.Ydict.pars.Alens = aa

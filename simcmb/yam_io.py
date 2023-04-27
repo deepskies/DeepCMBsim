@@ -5,7 +5,7 @@ import h5py
 from collections.abc import Iterable
 
 class Ydict(object):
-    def __init__(self, infile = "planck_2018_1e4.yaml"): #put .yaml into a settings folder
+    def __init__(self, infile = "example_config.yaml"): #put .yaml into a settings folder
         with open(infile, "r") as f:
             self.myyam = yaml.safe_load(f)
 

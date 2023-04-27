@@ -48,6 +48,19 @@ class Ydict(object):
 
         self.user_params = self.myyam['USERPARAMS']
 
+    def update_vals(self, attr, new_val, incamb = False):
+        if incamb:
+            if attr=="r":
+                setattr(self.Ydict.pars.InitPower, attr, new_val)
+            else:
+                setattr(self.Ydict.pars, attr, new_val)
+        else:
+            self.Ydictu[attr] = new_val
+        if "fwhm" in attr:
+            self.max_l_use = int(min(self.Ydictu['max_l_use'], noise.max_multipole(self.Ydictu['beam_fwhm'])))
+            self.Ydict.pars.max_l, self.Ydict.pars.max_l_tensor = int(self.max_l_use + self.Ydictu['extra_l']), int(self.max_l_use + self.Ydictu['extra_l'])
+
+
 
 def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, permission = 'r+', overwrite=False):
     if (sims_to_save_end is None) and (sims_to_save_start is None):

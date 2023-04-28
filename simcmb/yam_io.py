@@ -39,17 +39,15 @@ class Ydict(object):
                 self.all_params_dict['USERPARAMS']['ITERABLES'][x] = np.array(y)
 
     def update_val(self, attr, new_val):
-        attr_split = re.split(".", attr)
-        if len(attr_split) == 1:
-            if hasattr(self.CAMBparams, attr):
-                setattr(self.CAMBparams, attr, new_val)
-            elif attr in self.all_params_dict['USERPARAMS']:
-                self.all_params_dict['USERPARAMS'][attr] = new_val
-            else:
-                print("not a valid attribute")
-        elif len(attr_split) == 2:
-            if hasattr( getattr(self.CAMBparams, attr_split[0]), attr_split[1]):
-                setattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1], new_val)
+        attr_split = re.split("\.", attr)
+        if (len(attr_split) == 1) and (hasattr(self.CAMBparams, attr)):
+            setattr(self.CAMBparams, attr, new_val)
+        elif (len(attr_split) == 2) and (hasattr( getattr(self.CAMBparams, attr_split[0]), attr_split[1])):
+            setattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1], new_val)
+        elif attr in self.all_params_dict['USERPARAMS']:
+            self.all_params_dict['USERPARAMS'][attr] = new_val
+        else:
+            print("not a valid attribute")
 
 
 def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, permission='r+', overwrite=False):

@@ -5,7 +5,7 @@ import h5py
 from collections.abc import Iterable
 
 class Ydict(object):
-    def __init__(self, infile = "example_config.yaml"): #put .yaml into a settings folder
+    def __init__(self, infile = "example_config.yaml"):  # put .yaml into a settings folder
         with open(infile, "r") as f:
             self.myyam = yaml.safe_load(f)
 
@@ -15,11 +15,12 @@ class Ydict(object):
         for x, y in self.basepars.items():
             try:
                 setattr(self.pars, x, y)
-            except Exception: #be more descriptive in the error type or do an assertion first
+            except AttributeError:  # this is possible because some CAMBparams attributes have depth 2
                 for a, b in y.items():
                     try:
                         setattr( getattr(self.pars, x), a, b)
-                    except Exception:
+                    except AttributeError:
+                        print("this attribute doesn't exist")
                         continue
 
         self.myCAMBpars = self.myyam['USERPARAMS']['FORCAMB']

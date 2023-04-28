@@ -68,29 +68,17 @@ class PS_Maker(object):
 
         return outdict
 
-    def loop_cls_rA(self, overwrite=False):
-        for rr in self.Ydict.rs: #for par in self.Ydict['pass parameter']
+    def loop_cls_rA(self, overwrite=False):#make this for general arguments!
+        for rr in self.Ydict.rs: #for par in self.Ydict['pass parameter'] - use itertools.product!
             self.Ydict.pars.InitPower.r = rr
             for aa in self.Ydict.As:
                 self.Ydict.pars.Alens = aa
                 cpars_cur = self.Ydict.pars
                 if overwrite:
                     outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
-                    savecls(outdict, os.path.join(self._outdir, namestr))
+                    savecls(outdict, os.path.join(self._outdir, namestr))#replace this with something other than save!
                 else:
                     namestr = self.get_namestr(cpars_cur)
                     if sum([namestr in x for x in os.listdir(self._outdir)])==0:
                         outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
                         savecls(outdict, os.path.join(self._outdir, namestr))
-
-    def update_vals(self, attr, new_val, incamb = False):
-        if incamb:
-            if attr=="r":
-                setattr(self.Ydict.pars.InitPower, attr, new_val)
-            else:
-                setattr(self.Ydict.pars, attr, new_val)
-        else:
-            self.Ydictu[attr] = new_val
-        if "fwhm" in attr:
-            self.max_l_use = int(min(self.Ydictu['max_l_use'], noise.max_multipole(self.Ydictu['beam_fwhm'])))
-            self.Ydict.pars.max_l, self.Ydict.pars.max_l_tensor = int(self.max_l_use + self.Ydictu['extra_l']), int(self.max_l_use + self.Ydictu['extra_l'])

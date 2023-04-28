@@ -2,68 +2,57 @@ import camb
 import yaml
 import numpy as np
 import h5py
+import re
 from collections.abc import Iterable
 
+
+def set_camb_attr(cambparams_instance, x, y):
+    try:
+        setattr(cambparams_instance, x, y)
+    except TypeError:  # this is possible because some CAMBparams attributes have depth 2
+        for a, b in y.items():
+            try:
+                setattr(getattr(cambparams_instance, x), a, b)
+            except Exception:  # this is only necessary because of some weird type error with CustomSources.custom_source_ell_scales
+                continue
+
+
 class Ydict(object):
-    def __init__(self, infile = "example_config.yaml"):  # put .yaml into a settings folder
+    def __init__(self, infile="example_config.yaml"):  # put .yaml into a settings folder
         with open(infile, "r") as f:
-            self.myyam = yaml.safe_load(f)
+            self.all_params_dict = yaml.safe_load(f)
 
-        self.pars = camb.CAMBparams() # creates a base CAMBparams instance
+        self.CAMBparams = camb.CAMBparams()  # creates a base CAMBparams instance
 
-        self.basepars = self.myyam['BASECAMBPARAMS']
-        for x, y in self.basepars.items():
-            try:
-                setattr(self.pars, x, y)
-            except AttributeError:  # this is possible because some CAMBparams attributes have depth 2
-                for a, b in y.items():
-                    try:
-                        setattr( getattr(self.pars, x), a, b)
-                    except AttributeError:
-                        print("this attribute doesn't exist")
-                        continue
+        for x, y in self.all_params_dict['BASECAMBPARAMS'].items():  # these get set first and are potentially overwritten later
+            set_camb_attr(self.CAMBparams, x, y)
 
-        self.myCAMBpars = self.myyam['USERPARAMS']['FORCAMB']
-        for x, y in self.myCAMBpars.items():
-            try:
-                setattr(self.pars, x, y)
-            except Exception:
-                for a, b in y.items():
-                    try:
-                        setattr( getattr(self.pars, x), a, b)
-                    except Exception:
-                        continue
+        for x, y in self.all_params_dict['USERPARAMS']['FORCAMB'].items():
+            set_camb_attr(self.CAMBparams, x, y)
 
-        rv = self.myyam['USERPARAMS']['rvals'] #more descriptive name for r
-        if (isinstance(rv, Iterable) and (len(rv)<=3)):
-            rv[:2] = np.log10(rv[:2]) if (rv[0]>0) else rv[:2]
-            self.rs = np.logspace(*rv)
-        else:
-            self.rs = np.array(rv)
-
-        Av = self.myyam['USERPARAMS']['Avals'] #more descriptive name for A
-        if (isinstance(Av, Iterable) and (len(Av)<=3)):
-            self.As = np.linspace(*Av)
-        else:
-            self.As = np.array(Av)
-
-        self.user_params = self.myyam['USERPARAMS']
-
-    def update_vals(self, attr, new_val, incamb = False):
-        if incamb:
-            if attr=="r":
-                setattr(self.Ydict.pars.InitPower, attr, new_val)
+        for x, y in self.all_params_dict['USERPARAMS']['ITERABLES'].items():
+            if (isinstance(y, Iterable) and (len(y) <= 3)):
+                self.all_params_dict['USERPARAMS']['ITERABLES'][x] = np.linspace(*y)
             else:
-                setattr(self.Ydict.pars, attr, new_val)
-        else:
-            self.Ydictu[attr] = new_val
-        if "fwhm" in attr:
-            self.max_l_use = int(min(self.Ydictu['max_l_use'], noise.max_multipole(self.Ydictu['beam_fwhm'])))
-            self.Ydict.pars.max_l, self.Ydict.pars.max_l_tensor = int(self.max_l_use + self.Ydictu['extra_l']), int(self.max_l_use + self.Ydictu['extra_l'])
+                if not isinstance(y, Iterable):
+                    print(x, "is not iterable; are you sure it should be in ITERABLES?")
+                self.all_params_dict['USERPARAMS']['ITERABLES'][x] = np.array(y)
+
+    def update_val(self, attr, new_val):
+        attr_split = re.split(".", attr)
+        if len(attr_split) == 1:
+            if hasattr(self.CAMBparams, attr):
+                setattr(self.CAMBparams, attr, new_val)
+            elif attr in self.all_params_dict['USERPARAMS']:
+                self.all_params_dict['USERPARAMS'][attr] = new_val
+            else:
+                print("not a valid attribute")
+        elif len(attr_split) == 2:
+            if hasattr( getattr(self.CAMBparams, attr_split[0]), attr_split[1]):
+                setattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1], new_val)
 
 
-
-def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, permission = 'r+', overwrite=False):
+def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, permission='r+', overwrite=False):
     if (sims_to_save_end is None) and (sims_to_save_start is None):
         sims_to_save_start = 0
         sims_to_save_end = len(all_sims)
@@ -72,9 +61,10 @@ def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, 
             out_dict = all_sims[i]
             for k, v in out_dict.items():
                 try:
-                    f.create_dataset(f"r{out_dict['r']}/Alens{out_dict['Alens']}/{k}", data = v)
+                    f.create_dataset(f"r{out_dict['r']}/Alens{out_dict['Alens']}/{k}", data=v)
                 except ValueError:
                     if overwrite:
                         f[f"r{out_dict['r']}/Alens{out_dict['Alens']}/{k}"] = v
                     else:
-                        print(f"skipping because r{out_dict['r']}/Alens{out_dict['Alens']}/{k} already exists and overwrite set to False")
+                        print(
+                            f"skipping because r{out_dict['r']}/Alens{out_dict['Alens']}/{k} already exists and overwrite set to False")

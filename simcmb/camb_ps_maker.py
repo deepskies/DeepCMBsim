@@ -12,11 +12,11 @@ includes noise, loops, and option to update parameters
 class PS_Maker(object):
     def __init__(self, in_dict): #read in the yaml such that in_dict is yi.Ydict(infile) (this will be done in the ipynb)
         self.Ydict = in_dict
-        self.Ydictu = self.Ydict.user_params #just an alias
+        self.Ydictu = self.Ydict['USERPARAMS']  # just an alias
 
         # according to the CAMB documentation, errors affect the last "100 or so" multipoles
         self.max_l_use = int( min(self.Ydictu['max_l_use'], noise.max_multipole(self.Ydictu['beam_fwhm'])) )
-        self.Ydict.pars.max_l, self.Ydict.pars.max_l_tensor = int(self.max_l_use + self.Ydictu['extra_l']), int(self.max_l_use  + self.Ydictu['extra_l'])
+        self.Ydict.CAMBparams.max_l, self.Ydict.CAMBparams.max_l_tensor = int(self.max_l_use + self.Ydictu['extra_l']), int(self.max_l_use + self.Ydictu['extra_l'])
         # could make this^ its own function so that it gets recalculated even when you update params
 
         self._outdir = self.Ydictu['outfile_dir']
@@ -70,10 +70,10 @@ class PS_Maker(object):
 
     def loop_cls_rA(self, overwrite=False):#make this for general arguments!
         for rr in self.Ydict.rs: #for par in self.Ydict['pass parameter'] - use itertools.product!
-            self.Ydict.pars.InitPower.r = rr
+            self.Ydict.CAMBparams.InitPower.r = rr
             for aa in self.Ydict.As:
-                self.Ydict.pars.Alens = aa
-                cpars_cur = self.Ydict.pars
+                self.Ydict.CAMBparams.Alens = aa
+                cpars_cur = self.Ydict.CAMBparams
                 if overwrite:
                     outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
                     savecls(outdict, os.path.join(self._outdir, namestr))#replace this with something other than save!

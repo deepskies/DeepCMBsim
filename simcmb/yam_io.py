@@ -38,6 +38,8 @@ class Ydict(object):
                     print(x, "is not iterable; are you sure it should be in ITERABLES?")
                 self.all_params_dict['USERPARAMS']['ITERABLES'][x] = np.array(y)
 
+        self.dict_iterables = self.all_params_dict['USERPARAMS']['ITERABLES']  # want to make this more easily accessible, for loops
+
     def update_val(self, attr, new_val):
         attr_split = re.split("\.", attr)
         if (len(attr_split) == 1) and (hasattr(self.CAMBparams, attr)):

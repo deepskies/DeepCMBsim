@@ -1,8 +1,9 @@
-import os
+import itertools
 import camb
 import numpy as np
 from datetime import datetime as dt
 import noise
+from collections import namedtuple
 
 """
 Code to create an array of power spectra from CAMB based on a yaml file
@@ -12,7 +13,7 @@ includes noise, loops, and option to update parameters
 class PS_Maker(object):
     def __init__(self, in_dict): #read in the yaml such that in_dict is yi.Ydict(infile) (this will be done in the ipynb)
         self.Ydict = in_dict
-        self.Ydictu = self.Ydict['USERPARAMS']  # just an alias
+        self.Ydictu = self.Ydict.all_params_dict['USERPARAMS']  # just an alias
 
         # according to the CAMB documentation, errors affect the last "100 or so" multipoles
         self.max_l_use = int( min(self.Ydictu['max_l_use'], noise.max_multipole(self.Ydictu['beam_fwhm'])) )
@@ -22,6 +23,8 @@ class PS_Maker(object):
         self._outdir = self.Ydictu['outfile_dir']
 
         self.cls_raw, self.units = bool(self.Ydictu['cls_raw']), self.Ydictu['TT_dimension']
+
+        self.results = {}  # initialize an empty dictionary that can be filled in later, if desired
 
     def get_noise(self):
         if self.Ydictu['noise_type'] == 'white':
@@ -38,7 +41,7 @@ class PS_Maker(object):
             namestr += "_rawCl"
         return namestr
 
-    def get_cls(self, cpars):
+    def get_cls(self, cpars, save_to_dict = None):
         if bool(self.Ydictu["verbose"]):
             ta = dt.now()
         results = camb.get_results(cpars)
@@ -56,29 +59,36 @@ class PS_Maker(object):
         outdict = {}
         for i in range(len(outlabs)):
             outdict[outlabs[i]] = outarr[i]
-        outdict['lensed_CLs'] = self.Ydictu['FORCAMB']['DoLensing']
 
         if bool(self.Ydictu["verbose"]):
             tb = dt.now()
             print('from', dt.strftime(ta, '%H:%M:%S.%f %P'), 'to', dt.strftime(tb, '%H:%M:%S.%f %P'), end=" ")
             print('or', str((tb - ta).seconds) + '.' + str((tb - ta).microseconds), 'seconds total')
 
-        outdict['r'] = cpars.InitPower.r
-        outdict['Alens'] = cpars.Alens
+        if save_to_dict is not None:
+            self.results[save_to_dict] = outdict
+        else:
+            return outdict
 
-        return outdict
+    def loop_sims(self, overwrite=False):#make this for general arguments!
+        # old version, only for r and Alens:
+        # for rr in self.Ydict.rs: #for par in self.Ydict['pass parameter'] - use itertools.product!
+        #     self.Ydict.CAMBparams.InitPower.r = rr
+        #     for aa in self.Ydict.As:
+        #         self.Ydict.CAMBparams.Alens = aa
+        #         cpars_cur = self.Ydict.CAMBparams
+        #         if overwrite:
+        #             outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
+        #             savecls(outdict, os.path.join(self._outdir, namestr))#replace this with something other than save!
+        #         else:
+        #             namestr = self.get_namestr(cpars_cur)
+        #             if sum([namestr in x for x in os.listdir(self._outdir)])==0:
+        #                 outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
+        #                 savecls(outdict, os.path.join(self._outdir, namestr))
+        keys, values = list(self.Ydict.dict_iterables.keys()), self.Ydict.dict_iterables.values()
+        for vector in itertools.product(*values):
+            for i in range(len(vector)):
+                self.Ydict.update_val(keys[i], vector[i])
+            self.get_cls(self.Ydict.CAMBparams, save_to_dict=zip(keys, vector))
 
-    def loop_cls_rA(self, overwrite=False):#make this for general arguments!
-        for rr in self.Ydict.rs: #for par in self.Ydict['pass parameter'] - use itertools.product!
-            self.Ydict.CAMBparams.InitPower.r = rr
-            for aa in self.Ydict.As:
-                self.Ydict.CAMBparams.Alens = aa
-                cpars_cur = self.Ydict.CAMBparams
-                if overwrite:
-                    outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
-                    savecls(outdict, os.path.join(self._outdir, namestr))#replace this with something other than save!
-                else:
-                    namestr = self.get_namestr(cpars_cur)
-                    if sum([namestr in x for x in os.listdir(self._outdir)])==0:
-                        outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
-                        savecls(outdict, os.path.join(self._outdir, namestr))
+        return self.results

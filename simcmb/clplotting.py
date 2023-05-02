@@ -1,6 +1,6 @@
 import pymaster as nmt
 import numpy as np
-
+from matplotlib import pyplot as plt
 class flatmap(object):
     def __init__(self, pixels, degrees, seed = -1, cl_dict = None):
         self.pixels, self.degrees = pixels, degrees  # pixels on each side, degrees on each side
@@ -30,3 +30,22 @@ class flatmap(object):
             return self._flatmap(cl_arr, spin_arr, seed=seed)
         else:
             print("if you don't want to restrict to a `cl_dict` dictionary, use `self._flatmap` instead")
+
+
+def power_spectrum_plot(cldict = None, cls = None):
+    if cldict is not None:
+        if len(cls)==1 and cls in ["T", "E", "B", "P"]:
+            cl_arr, ells = np.array([self.cl_dict["cl"+cls*2]]), cldict['l']
+        elif (len(cls)==2) and cls in ["TT", "EE", "BB", "TE", "PP", "PT", "PE"]:
+            cl_arr, ells = np.array([self.cl_dict["cl"+cls]]), cldict['l']
+        elif (len(cls)==4) and cls[:2]=='cl' and (cls[2:] in ["TT", "EE", "BB", "TE", "PP", "PT", "PE"]):
+            cl_arr, ells = np.array([self.cl_dict[cls]]), cldict['l']
+        for cvals in cl_arr:
+            plt.plot(ells, cvals)
+    else:
+        if len(cls) == 2:
+            print("assuming that ells and Cls are provided")
+            plt.plot(cls[0], cls[1])
+        else:
+            print("assuming that only Cls are provided")
+            plt.plot(range(len(cls)), cls)

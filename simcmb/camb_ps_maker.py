@@ -64,15 +64,16 @@ class PS_Maker:
         # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_total_cls
         tt, ee, bb, te = results.get_total_cls(raw_cl=self.normalize_cls, CMB_unit=self.TT_units)[:self.max_l_use + 1].T
         if self.UserParams['noise_type'] is not None:
-            noise = self.get_noise()
-            tt += noise[0]
-            ee += noise[1]
-            bb += noise[1]
-            te += noise[1]
+            _noise = self.get_noise()
+            tt += _noise[0]
+            ee += _noise[1]
+            bb += _noise[1]
+            te += _noise[1]
 
-        #https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_lens_potential_cls
+        # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_lens_potential_cls
         pp, pt, pe = results.get_lens_potential_cls(raw_cl=self.normalize_cls)[:self.max_l_use + 1].T
         lvals = range(self.max_l_use + 1)
+
         outdict = {
             'l': lvals,
             'clTT': tt,

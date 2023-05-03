@@ -6,8 +6,8 @@ USERPARAMS:
     Alens : [.8, 1.2, 3]
   seed: 0
   verbose: 1
-  cls_raw: False
-  TT_dimension: muK
+  normalize_cls: False #raw_cl – return Cl rather than l*(l+1)*Cl/2π (Cl alone is not conventional)
+  TT_units: muK #return uK**2 units for the TT, EE, BB, TE Cls
   outfile_dir: "outfiles"
   noise_type: "white"
   noise_level: 5  # units: uK*arcmin

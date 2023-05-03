@@ -3,7 +3,6 @@ import camb
 import numpy as np
 from datetime import datetime as dt
 from simcmb import noise
-from collections import namedtuple
 
 """
 Code to create an array of power spectra from CAMB based on a yaml file
@@ -30,8 +29,8 @@ class PS_Maker:
 
         self._outdir = self.UserParams['outfile_dir']
 
-        self.cls_raw = bool(self.UserParams['cls_raw'])
-        self.units = self.UserParams['TT_dimension']
+        self.normalize_cls = bool(self.UserParams['normalize_cls'])
+        self.TT_units = self.UserParams['TT_units']
 
         self.results = {}  # initialize an empty dictionary that can be filled in later, if desired
 
@@ -51,7 +50,7 @@ class PS_Maker:
     def get_namestr(self, cpars):
         namestr = f"cls_camb_r{cpars.InitPower.r:0.2f}_A{cpars.Alens:0.2f}_lmax{self.max_l_use}_noise" + str(
             self.UserParams['noise_level']) + "." + str(self.UserParams['beam_fwhm'])
-        if self.cls_raw:
+        if self.normalize_cls:
             namestr += "_rawCl"
         return namestr
 
@@ -63,7 +62,7 @@ class PS_Maker:
         results = camb.get_results(self.CAMBparams)
 
         # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_total_cls
-        tt, ee, bb, te = results.get_total_cls(raw_cl=self.cls_raw, CMB_unit=self.units)[:self.max_l_use + 1].T
+        tt, ee, bb, te = results.get_total_cls(raw_cl=self.normalize_cls, CMB_unit=self.TT_units)[:self.max_l_use + 1].T
         if self.UserParams['noise_type'] is not None:
             noise = self.get_noise()
             tt += noise[0]
@@ -72,7 +71,7 @@ class PS_Maker:
             te += noise[1]
 
         #https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_lens_potential_cls
-        pp, pt, pe = results.get_lens_potential_cls(raw_cl=self.cls_raw)[:self.max_l_use + 1].T
+        pp, pt, pe = results.get_lens_potential_cls(raw_cl=self.normalize_cls)[:self.max_l_use + 1].T
         lvals = range(self.max_l_use + 1)
         outdict = {
             'l': lvals,

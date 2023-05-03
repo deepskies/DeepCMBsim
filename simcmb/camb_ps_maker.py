@@ -3,6 +3,7 @@ import camb
 import numpy as np
 from datetime import datetime as dt
 from simcmb import noise
+import h5py
 
 """
 Code to create an array of power spectra from CAMB based on a yaml file
@@ -32,7 +33,10 @@ class PS_Maker:
         self.normalize_cls = bool(self.UserParams['normalize_cls'])
         self.TT_units = self.UserParams['TT_units']
 
-        self.results = {}  # initialize an empty dictionary that can be filled in later, if desired
+        # initialize empty dictionaries to be filled in later with results and their params
+        self.runids = []
+        self.results = {}
+        self.result_parameters = {}
 
     def get_noise(self):
         if self.UserParams['noise_type'] == 'white':
@@ -97,7 +101,7 @@ class PS_Maker:
         else:
             return outdict
 
-    def loop_sims(self, overwrite=False):
+    def loop_sims(self):
         # old version, only for r and Alens:
         # for rr in self.Ydict.rs: #for par in self.Ydict['pass parameter'] - use itertools.product!
         #     self.CAMBparams.InitPower.r = rr
@@ -117,24 +121,34 @@ class PS_Maker:
         for vector in itertools.product(*values):
             for i in range(len(vector)):
                 self.Ydict.update_val(keys[i], vector[i])
-            self.get_cls(save_to_dict=zip(keys, vector))
+            _single_param_id = generate_runid()
+            self.runids.append(_single_param_id)
+            self.result_parameters[_single_param_id] = cpars_to_dict(self.CAMBparams)
+            self.get_cls(_single_param_id)
 
-        return self.results
+    def savecls(self, out_name, sims_to_save_start=None, sims_to_save_end=None, permission='r+', overwrite=False):
+        if (sims_to_save_end is None) and (sims_to_save_start is None):
+            sims_to_save_start = 0
+            sims_to_save_end = len(all_sims)
 
-
-def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, permission='r+', overwrite=False):
-    if (sims_to_save_end is None) and (sims_to_save_start is None):
-        sims_to_save_start = 0
-        sims_to_save_end = len(all_sims)
-    with h5py.File(out_name + '.h5', permission) as f:
-        for i in range(sims_to_save_start, sims_to_save_end):
-            out_dict = all_sims[i]
-            for k, v in out_dict.items():
-                try:
-                    f.create_dataset(f"r{out_dict['r']}/Alens{out_dict['Alens']}/{k}", data=v)
-                except ValueError:
-                    if overwrite:
-                        f[f"r{out_dict['r']}/Alens{out_dict['Alens']}/{k}"] = v
+        with h5py.File(out_name + '.h5', permission) as f:
+            for i in range(sims_to_save_start, sims_to_save_end):
+                for runid in self.runids:
+                    if True:  # someday perform a check to see if results with these parameters have already been run
+                        f.create_dataset(f"{runid}/parameters", data=self.result_parameters[runid])
+                        f.create_dataset(f"{runid}/results", data=self.results[runid])
                     else:
-                        print(
-                            f"skipping because r{out_dict['r']}/Alens{out_dict['Alens']}/{k} already exists and overwrite set to False")
+                        if overwrite:
+                            f.create_dataset(f"{runid}/parameters", data=self.result_parameters[runid])
+                            f.create_dataset(f"{runid}/results", data=self.results[runid])
+                        else:
+                            print(f"skipping because {runid}/parameters already exists and overwrite set to False")
+
+
+def generate_runid(random_digits=6):
+    _rint = np.random.randint(10**random_digits)
+    return 'runid_'+dt.now().strftime('%y%m%d%H%M%S%f_')+str(_rint).zfill(random_digits)
+
+
+def cpars_to_dict(cpars):
+    return cpars

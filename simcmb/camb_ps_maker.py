@@ -56,7 +56,14 @@ class PS_Maker(object):
         lvals = range(self.max_l_use + 1)
         outarr = np.array([lvals, tt, ee, bb, te, pp, pt, pe])
         outlabs = ['l', 'clTT', 'clEE', 'clBB', 'clTE', 'clPP', 'clPT', 'clPE']
-        outdict = {}
+        # More explicit. Do this please. 
+        outdict = {
+        "l":l_vals, 
+        "clTT":tt
+        }
+        #out_dict = {
+        #outlabs[i]:outarr[i] for i in range(len(outlabs))
+        #}
         for i in range(len(outlabs)):
             outdict[outlabs[i]] = outarr[i]
 

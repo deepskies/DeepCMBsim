@@ -1,4 +1,19 @@
-[build-system]
+[tool.poetry]
+name = "simcmb"
+version = "0.1.0"
+description = "fastsim code for CMB with lensing and noise"
+authors = ["Samuel D. McDermott"]
+license = "LICENSE.txt"
 
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.poetry.dependencies]
+python = "^3.9"
+camb = "^1.4.0"
+pymaster = "^1.5"
+h5py = "^3.8.0"
+numpy = "^1.24.3"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

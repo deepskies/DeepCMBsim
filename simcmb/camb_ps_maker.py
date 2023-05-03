@@ -2,7 +2,7 @@ import itertools
 import camb
 import numpy as np
 from datetime import datetime as dt
-import noise
+from simcmb import noise
 from collections import namedtuple
 
 """

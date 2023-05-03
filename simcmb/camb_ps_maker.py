@@ -25,6 +25,7 @@ class PS_Maker(object):
         self.cls_raw, self.units = bool(self.Ydictu['cls_raw']), self.Ydictu['TT_dimension']
 
         self.results = {}  # initialize an empty dictionary that can be filled in later, if desired
+        self.result_parameters = {}
 
     def get_noise(self):
         if self.Ydictu['noise_type'] == 'white':
@@ -96,25 +97,22 @@ class PS_Maker(object):
         for vector in itertools.product(*values):
             for i in range(len(vector)):
                 self.Ydict.update_val(keys[i], vector[i])
-            self.get_cls(self.Ydict.CAMBparams, save_to_dict=zip(keys, vector))
+            _single_param_id = "ksdlfdlkfjlkdsjglkjsdgkljdklsg"
+            self.result_parameters[_single_param_id] = {that dictionary}
+            self.get_cls(self.Ydict.CAMBparams, _single_param_id)#save_to_dict=zip(keys, vector))
 
         return self.results
 
 
 
-def savecls(all_sims, out_name, sims_to_save_start=None, sims_to_save_end=None, permission='r+', overwrite=False):
-    if (sims_to_save_end is None) and (sims_to_save_start is None):
-        sims_to_save_start = 0
-        sims_to_save_end = len(all_sims)
-    with h5py.File(out_name + '.h5', permission) as f:
-        for i in range(sims_to_save_start, sims_to_save_end):
-            out_dict = all_sims[i]
-            for k, v in out_dict.items():
-                try:
-                    f.create_dataset(f"r{out_dict['r']}/Alens{out_dict['Alens']}/{k}", data=v)
-                except ValueError:
-                    if overwrite:
-                        f[f"r{out_dict['r']}/Alens{out_dict['Alens']}/{k}"] = v
-                    else:
-                        print(
-                            f"skipping because r{out_dict['r']}/Alens{out_dict['Alens']}/{k} already exists and overwrite set to False")
+    def savecls(self, out_name, sims_to_save_start=None, sims_to_save_end=None, permission='r+', overwrite=False):
+        if (sims_to_save_end is None) and (sims_to_save_start is None):
+            sims_to_save_start = 0
+            sims_to_save_end = len(self.results)
+            
+        labels_file = pd.DataFrame(self.result_parameters) # Make some sort of thing with an index
+        features_file = pd.DataFrame(self.results) # Make a different thing with the same index
+        with h5py.File(out_name + '.h5', permission) as f:
+            f.create_dataset(f"{run_id}/label", data=label_file)
+            f.create_dataset(f"{run_id}/features", data=features_file)
+

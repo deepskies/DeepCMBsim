@@ -1,7 +1,6 @@
 import camb
 import yaml
 import numpy as np
-import h5py
 import re
 from collections.abc import Iterable
 

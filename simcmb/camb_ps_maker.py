@@ -12,6 +12,10 @@ includes noise, loops, and option to update parameters
 
 
 class PS_Maker:
+    """
+    main object for getting power spectra for set parameters, or looped over values of arbitrary
+    numbers of parameters
+    """
     def __init__(self, in_Ydict):  # read in the yaml such that in_Ydict is Ydict(infile)
         self.Ydict = in_Ydict
         self.CAMBparams = self.Ydict.CAMBparams
@@ -54,7 +58,11 @@ class PS_Maker:
     def get_cls(self, save_to_dict=None):
         if bool(self.UserParams["verbose"]):
             time_start = dt.now()
+
+        # main calculation: https://camb.readthedocs.io/en/latest/camb.html#camb.get_results
         results = camb.get_results(self.CAMBparams)
+
+        # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_total_cls
         tt, ee, bb, te = results.get_total_cls(raw_cl=self.cls_raw, CMB_unit=self.units)[:self.max_l_use + 1].T
         if self.UserParams['noise_type'] is not None:
             noise = self.get_noise()
@@ -62,6 +70,8 @@ class PS_Maker:
             ee += noise[1]
             bb += noise[1]
             te += noise[1]
+
+        #https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_lens_potential_cls
         pp, pt, pe = results.get_lens_potential_cls(raw_cl=self.cls_raw)[:self.max_l_use + 1].T
         lvals = range(self.max_l_use + 1)
         outdict = {

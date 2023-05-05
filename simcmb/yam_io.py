@@ -41,6 +41,8 @@ class Ydict:
 
         self.dict_iterables = self._all_params_dict['USERPARAMS']['ITERABLES']  # make this more easily accessible
 
+        self.out_dict = {}
+
     def update_val(self, attr, new_val):
         attr_split = re.split("\.", attr)
         if (len(attr_split) == 1) and (hasattr(self.CAMBparams, attr)):
@@ -51,3 +53,14 @@ class Ydict:
             self._all_params_dict['USERPARAMS'][attr] = new_val
         else:
             print("not a valid attribute")
+
+    def save_cpars(self, filename):
+        _long_str = str(self.CAMBparams)
+        _long_str_lines = re.split("\\n", _long_str)[1:]  # first entry is just 'class: <CAMBparams>'
+        with open(filename, "w") as f:
+            for _line in _long_str_lines:
+                _line = re.split("<", _line.replace("=", ":"))[0]
+                if len(re.split(":", _line))==2 and 'None' in re.split(":", _line)[1]:
+                    _line = _line.replace("None", " ")
+                f.write(_line)
+                f.write("\n")

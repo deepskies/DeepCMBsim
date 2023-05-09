@@ -3,11 +3,27 @@ title: 'Title Title Title Title'
 tags:
   - Python
   - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
+  - cosmology
+  - cosmic microwave background
+  - gravitational lensing
 authors:
-  - name: Author 1
+  - name: Samuel McDermott
+    orcid: 0000-0000-0000-0000
+    equal-contrib: true
+    affiliation: "1, 2" # (Multiple affiliations must be quoted)
+  - name: Camille Avestruz
+    orcid: 0000-0000-0000-0000
+    equal-contrib: true
+    affiliation: "1, 2" # (Multiple affiliations must be quoted
+  - name: Brian Nord
+    orcid: 0000-0000-0000-0000
+    equal-contrib: true
+    affiliation: "1, 2" # (Multiple affiliations must be quoted)
+  - name: Humna Awan
+    orcid: 0000-0000-0000-0000
+    equal-contrib: true
+    affiliation: "1, 2" # (Multiple affiliations must be quoted)
+  - name: Maggie Voetberg
     orcid: 0000-0000-0000-0000
     equal-contrib: true
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
@@ -29,32 +45,34 @@ based on: https://joss.theoj.org/papers/10.21105/joss.00388
 
 # Summary
 
-< 10 sentences
+1. Cosmic microwave background and lensing
+2. CAMB
+3. Fast, so that it can make lots and lots at multiple levels of fidelity.
+4. Useful for computational experiments with machine learning and SBI
+5. We create a simple interface for building simulations around camb and namaster.
+
 
 # Statement of need
 
-< 20 sentences
+1. Most CMB lensing simulators are not use-friendly and don't easily 
+2. needed to study B-modes and the effects of additional physics, like different kinds of noise
+3. a bridge to more complex simulations and provides a benchmark for those more high-fidelity simulations
+4. How does this compare in middle level of detail with pixell and others
+
 
 # Mathematics
 
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
+1. Basic lensing of CMB
 
-Double dollars make self-standing equations:
 
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
-
-You can also use plain \LaTeX for equations
-\begin{equation}\label{eq:fourier}
-\hat f(\omega) = \int_{-\infty}^{\infty} f(x) e^{i\omega x} dx
-\end{equation}
-and refer to \autoref{eq:fourier} from text.
 
 # Citations
-
-
+1. deeplenstronomy
+2. pixell
+3. camb
+4. webcmb?
+5. namaster
+6. 
 For a quick reference, the following citation commands can be used:
 - `@author:2001`  ->  "Author et al. (2001)"
 - `[@author:2001]` -> "(Author et al., 2001)"
@@ -63,7 +81,7 @@ For a quick reference, the following citation commands can be used:
 # Figures
 
 Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png) and referenced from text using \autoref{fig:example}.
+https://docs.google.com/presentation/d/1-gDIkdLtom0yEvgFSj0C8N1egvZOjfOjp9rjqfLfI6U/edit#slide=id.g22c7a309c7b_0_206
 
 
 # Acknowledgements

@@ -1,0 +1,16 @@
+FORCAMB:  # these simply overwrite any values in BASECAMBPARAMS
+  DoLensing : True
+ITERABLES:  # these provide iterables that can overwrite their corresponding values in BASECAMBPARAMS in loop settings
+  InitPower.r : [0.01, 0.1, 3]  # for nested CAMBparams attributes, use the dot structure
+  Alens : [.8, 1.2, 3]
+seed: 0
+verbose: 1
+normalize_cls: False #raw_cl – return Cl rather than l*(l+1)*Cl/2π (Cl alone is not conventional)
+TT_units: muK #return uK**2 units for the TT, EE, BB, TE Cls
+outfile_dir: "outfiles"
+noise_type: "white"
+noise_level: 5  # units: uK*arcmin
+beam_fwhm: 3  # units: arcmin
+extra_l: 300
+max_l_use: 10000  # max_l_use will differ from max_l and max_l_tensor by "extra_l" because
+# according to the CAMB documentation errors affect the last "100 or so" multipoles

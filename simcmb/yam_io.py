@@ -16,26 +16,41 @@ def set_camb_attr(cambparams_instance, x, y):
                 continue
 
 
-class Ydict:
-    def __init__(self, infile="example_config.yaml"):  # put .yaml into a settings folder
+def _quick_yaml_load(infile = None):
+    if infile is None:
+        return {}
+    else:
         with open(infile, "r") as f:
-            self._all_params_dict = yaml.safe_load(f)
+            return yaml.safe_load(f)
+
+
+class Ydict:
+    def __init__(self, user_config="simcmb/settings/user_config.yaml", base_config="simcmb/settings/base_config.yaml"):  # put .yaml into a settings folder
+
+        self._all_params_dict = {'USERPARAMS' : _quick_yaml_load(user_config), 'BASECAMBPARAMS' : _quick_yaml_load(base_config)}
 
         self.CAMBparams = camb.CAMBparams()  # creates a base CAMBparams instance
 
         for x, y in self._all_params_dict['BASECAMBPARAMS'].items():  # get set first (potentially overwritten later)
             set_camb_attr(self.CAMBparams, x, y)
 
-        for x, y in self._all_params_dict['USERPARAMS']['FORCAMB'].items():
-            set_camb_attr(self.CAMBparams, x, y)
-
-        for x, y in self._all_params_dict['USERPARAMS']['ITERABLES'].items():
-            if isinstance(y, Iterable) and len(y) <= 3:
-                self._all_params_dict['USERPARAMS']['ITERABLES'][x] = np.linspace(*y)
-            else:
-                if not isinstance(y, Iterable):
-                    print(x, "is not iterable; are you sure it should be in ITERABLES?")
-                self._all_params_dict['USERPARAMS']['ITERABLES'][x] = np.array(y)
+        if len(self._all_params_dict['USERPARAMS'])>0:
+            try:
+                for x, y in self._all_params_dict['USERPARAMS']['FORCAMB'].items():
+                    set_camb_attr(self.CAMBparams, x, y)
+            except KeyError:
+                print("nothing overwriting `base_config.yaml`")
+            try:
+                for x, y in self._all_params_dict['USERPARAMS']['ITERABLES'].items():
+                    if isinstance(y, Iterable) and len(y) <= 3:
+                        self._all_params_dict['USERPARAMS']['ITERABLES'][x] = np.linspace(*y)
+                    else:
+                        if not isinstance(y, Iterable):
+                            print(x, "is not iterable; are you sure it should be in ITERABLES?")
+                        self._all_params_dict['USERPARAMS']['ITERABLES'][x] = np.array(y)
+            except KeyError:
+                print("no iterables specified")
+                self._all_params_dict['USERPARAMS']['ITERABLES'] = {}
 
         self.UserParams = self._all_params_dict['USERPARAMS']
 

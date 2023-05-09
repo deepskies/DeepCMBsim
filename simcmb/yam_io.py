@@ -26,8 +26,8 @@ def _quick_yaml_load(infile = None):
 
 class Ydict:
     def __init__(self,
-                 user_config=os.path.join( os.path.dirname(__file__), "settings/user_config.yaml"),
-                 base_config=os.path.join( os.path.dirname(__file__), "settings/base_config.yaml")):
+                 user_config=os.path.join( os.path.dirname(__file__), "settings", "user_config.yaml"),
+                 base_config=os.path.join( os.path.dirname(__file__), "settings", "base_config.yaml")):
 
         self._all_params_dict = {
             'USERPARAMS' : _quick_yaml_load(user_config),

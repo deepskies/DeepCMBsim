@@ -54,6 +54,32 @@ class Ydict:
         else:
             print("not a valid attribute")
 
+    def cpars_to_dict(self):
+        _long_str = str(self.CAMBparams)
+        _long_str_lines = re.split("\\n", _long_str)[1:]  # first entry is just 'class: <CAMBparams>'
+        outer_dict = {}
+        i = 0
+        while i < len(_long_str_lines):
+            _line = _long_str_lines[i]
+            _line2 = re.split("=", _line)
+            if len(_line2)>1:
+                outer_dict[_line2[0].replace(" ", "")] = strconvert(_line2[1])
+            elif len(_line)>1:
+                _line = re.split(":", _line)[0]
+                inner_dict = {}
+                while i < len(_long_str_lines):
+                    i += 1
+                    if _long_str_lines[i][:3] == '   ':
+                        _line3 = re.split("=", _long_str_lines[i])
+                        inner_dict[_line3[0].replace(" ", "")] = strconvert(_line3[1]) if "None" not in _line3[1] else "~"
+                    else:
+                        break
+                outer_dict[_line.replace(" ", "")] = inner_dict
+            i += 1
+
+        return outer_dict
+
+
     def save_cpars(self, filename):
         _long_str = str(self.CAMBparams)
         _long_str_lines = re.split("\\n", _long_str)[1:]  # first entry is just 'class: <CAMBparams>'
@@ -64,3 +90,10 @@ class Ydict:
                     _line = _line.replace("None", " ")
                 f.write(_line)
                 f.write("\n")
+
+
+def strconvert(x):
+    try:
+        return eval(x)
+    except NameError:
+        return x.replace(" ","")

@@ -4,7 +4,9 @@ import numpy as np
 from datetime import datetime as dt
 from simcmb import noise
 import h5py
+import json
 from collections.abc import Iterable
+import os
 
 """
 Code to create an array of power spectra from CAMB based on a yaml file
@@ -52,13 +54,6 @@ class PS_Maker:
             print("only white noise is currently implemented")
             return np.zeros((2, self.max_l_use))
 
-    def get_namestr(self, cpars):
-        namestr = f"cls_camb_r{cpars.InitPower.r:0.2f}_A{cpars.Alens:0.2f}_lmax{self.max_l_use}_noise" + str(
-            self.UserParams['noise_level']) + "." + str(self.UserParams['beam_fwhm'])
-        if self.normalize_cls:
-            namestr += "_rawCl"
-        return namestr
-
     def get_cls(self, save_to_dict=None):
         if bool(self.UserParams["verbose"]):
             time_start = dt.now()
@@ -102,7 +97,7 @@ class PS_Maker:
         else:
             return outdict
 
-    def loop_sims(self, user_params_only=False):
+    def loop_sims(self, user_params=False):
         iterables = self.UserParams['ITERABLES']
         keys, values = list(iterables.keys()), iterables.values()
         for vector in itertools.product(*values):
@@ -110,25 +105,28 @@ class PS_Maker:
                 self.Ydict.update_val(keys[i], vector[i])
             _single_param_id = _generate_runid()
             self.runids.append(_single_param_id)
-            self.result_parameters[_single_param_id] = self.Ydict.cpars_to_dict(user_params_only=user_params_only)
+            self.result_parameters[_single_param_id] = self.Ydict.cpars_to_dict(user_params=user_params)
             self.get_cls(_single_param_id)
 
-    def savecls(self, saveids=None, randomids=False, permission='r+', overwrite=False):
+    def savecls(self, savedir=os.path.join(os.path.dirname(__file__), "outfiles"),
+                saveids=None, randomids=False, permission='w', overwrite=False):
         if saveids is not None:
             if type(saveids) == int:
                 saveids = np.random.choice(range(len(self.runids)), saveids, replace=False) if randomids else self.runids[:saveids]
             elif isinstance(saveids, Iterable):
                 saveids = [self.runids[x] for x in saveids]
             else:
-                saveids = self.runids
+                saveids = saveids
+        else:
+            saveids = self.runids
 
         for runid in saveids:
             if True or overwrite:  # todo check to see if results with these parameters have already been run
-                with h5py.File(f"{runid}_results.h5", permission) as f:
-                    for k, v in self.results[runid]:
+                with h5py.File(os.path.join(savedir, f"{runid}_results.h5"), permission) as f:
+                    for k, v in self.results[runid].items():
                         f.create_dataset(k, data=v)
-                with open(f"{runid}_params.yaml", permission) as f:
-                    yaml.safe_dump(f, self.result_parameters[runid])
+                with open(os.path.join(savedir, f"{runid}_params.yaml"), permission) as f:
+                    json.dump(self.result_parameters[runid], f, default= lambda x: x.tolist())
             else:
                 print(f"skipping because {runid}/parameters already exists and overwrite set to False")
 

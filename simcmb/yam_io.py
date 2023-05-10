@@ -48,7 +48,7 @@ class Ydict:
                 print("nothing overwriting `base_config.yaml`")
             try:
                 for x, y in self._all_params_dict['USERPARAMS']['ITERABLES'].items():
-                    if isinstance(y, Iterable) and len(y) <= 3:
+                    if isinstance(y, Iterable) and len(y) <= 3 and type(y[-1]) == int:
                         self._all_params_dict['USERPARAMS']['ITERABLES'][x] = np.linspace(*y)
                     else:
                         if not isinstance(y, Iterable):
@@ -70,20 +70,21 @@ class Ydict:
             setattr(self.CAMBparams, attr, new_val)
         elif (len(attr_split) == 2) and (hasattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1])):
             setattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1], new_val)
-        elif attr in self._all_params_dict['USERPARAMS']:
-            self._all_params_dict['USERPARAMS'][attr] = new_val
-        else:
-            print("not a valid attribute")
+        # elif attr in self._all_params_dict['USERPARAMS']:
+        self._all_params_dict['USERPARAMS'][attr] = new_val
+        # else:
+        #     print("not a valid attribute")
 
-    def cpars_to_dict(self, user_params_only=False):
-        if user_params_only:
-            diffdict = _nested_dict_diff(self.CAMBparams, self._all_params_dict["BASECAMBPARAMS"])
-            return {'FORCAMB': diffdict}
+    def cpars_to_dict(self, user_params=False):
+        if user_params:
+            diffdict = _nested_dict_diff(_cpars_to_dict(self.CAMBparams), self._all_params_dict["BASECAMBPARAMS"])
+            self._all_params_dict['USERPARAMS']['FORCAMB'] = diffdict
+            return self._all_params_dict['USERPARAMS']
         else:
             return _cpars_to_dict(self.CAMBparams)
 
     def save_cpars(self, filename, save_user_params_only=False):
-        cparsdict = self.cpars_to_dict(user_params_only=save_user_params_only)
+        cparsdict = self.cpars_to_dict(user_params=save_user_params_only)
         with open(filename, "w") as f:
             yaml.safe_dump(f, cparsdict)
 

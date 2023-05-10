@@ -25,10 +25,12 @@ def _quick_yaml_load(infile=None):
             return yaml.safe_load(f)
 
 
-class Ydict:
-    def __init__(self,
-                 user_config=os.path.join(os.path.dirname(__file__), "settings", "user_config.yaml"),
-                 base_config=os.path.join(os.path.dirname(__file__), "settings", "base_config.yaml")):
+class Yobj:
+    def __init__(
+            self,
+            user_config=os.path.join(os.path.dirname(__file__), "settings", "user_config.yaml"),
+            base_config=os.path.join(os.path.dirname(__file__), "settings", "base_config.yaml")
+    ):
 
         self._all_params_dict = {
             'USERPARAMS': _quick_yaml_load(user_config),
@@ -75,18 +77,13 @@ class Ydict:
         # else:
         #     print("not a valid attribute")
 
-    def cpars_to_dict(self, user_params=False):
+    def cpars_to_dict(self, user_params=True):
+        cpd = _cpars_to_dict(self.CAMBparams)
         if user_params:
-            diffdict = _nested_dict_diff(_cpars_to_dict(self.CAMBparams), self._all_params_dict["BASECAMBPARAMS"])
-            self._all_params_dict['USERPARAMS']['FORCAMB'] = diffdict
+            self._all_params_dict['USERPARAMS']['FORCAMB'] = _nested_dict_diff(cpd, self._all_params_dict["BASECAMBPARAMS"])
             return self._all_params_dict['USERPARAMS']
         else:
-            return _cpars_to_dict(self.CAMBparams)
-
-    def save_cpars(self, filename, save_user_params_only=False):
-        cparsdict = self.cpars_to_dict(user_params=save_user_params_only)
-        with open(filename, "w") as f:
-            yaml.safe_dump(f, cparsdict)
+            return cpd
 
 
 def _strconvert(x):

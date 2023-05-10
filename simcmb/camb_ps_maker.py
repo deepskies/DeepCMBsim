@@ -19,10 +19,10 @@ class PS_Maker:
     main object for getting power spectra for set parameters, or looped over values of arbitrary
     numbers of parameters
     """
-    def __init__(self, in_Ydict):  # read in the yaml such that in_Ydict is Ydict(infile)
-        self.Ydict = in_Ydict
-        self.CAMBparams = self.Ydict.CAMBparams
-        self.UserParams = self.Ydict.UserParams
+    def __init__(self, in_Yobj):  # read in the yaml such that in_Ydict is Ydict(infile)
+        self.Yobj = in_Yobj
+        self.CAMBparams = self.Yobj.CAMBparams
+        self.UserParams = self.Yobj.UserParams
 
         # according to the CAMB documentation, errors affect the last "100 or so" multipoles
         self.max_l_use = min(self.UserParams['max_l_use'], noise.max_multipole(self.UserParams['beam_fwhm']))
@@ -54,7 +54,7 @@ class PS_Maker:
             print("only white noise is currently implemented")
             return np.zeros((2, self.max_l_use))
 
-    def get_cls(self, save_to_dict=None):
+    def get_cls(self, save_to_dict=None, user_params=True):
         if bool(self.UserParams["verbose"]):
             time_start = dt.now()
 
@@ -72,7 +72,8 @@ class PS_Maker:
 
         # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_lens_potential_cls
         pp, pt, pe = results.get_lens_potential_cls(raw_cl=self.normalize_cls)[:self.max_l_use + 1].T
-        lvals = range(self.max_l_use + 1)
+        l_step = self.UserParams['l_step'] if 'l_step' in self.UserParams else 1
+        lvals = range(2, self.max_l_use + 1, l_step)
 
         outdict = {
             'l': lvals,
@@ -94,19 +95,21 @@ class PS_Maker:
 
         if save_to_dict is not None:
             self.results[save_to_dict] = outdict
+            self.result_parameters[save_to_dict] = self.Yobj.cpars_to_dict(user_params=user_params)
         else:
             return outdict
 
-    def loop_sims(self, user_params=False):
+    def loop_sims(self, user_params=True):
         iterables = self.UserParams['ITERABLES']
         keys, values = list(iterables.keys()), iterables.values()
         for vector in itertools.product(*values):
             for i in range(len(vector)):
-                self.Ydict.update_val(keys[i], vector[i])
+                self.Yobj.update_val(keys[i], vector[i])
+                self.CAMBparams = self.Yobj.CAMBparams
+                self.UserParams = self.Yobj.UserParams
             _single_param_id = _generate_runid()
             self.runids.append(_single_param_id)
-            self.result_parameters[_single_param_id] = self.Ydict.cpars_to_dict(user_params=user_params)
-            self.get_cls(_single_param_id)
+            self.get_cls(save_to_dict=_single_param_id, user_params=user_params)
 
     def savecls(self, savedir=os.path.join(os.path.dirname(__file__), "outfiles"),
                 saveids=None, randomids=False, permission='w', overwrite=False):
@@ -126,7 +129,7 @@ class PS_Maker:
                     for k, v in self.results[runid].items():
                         f.create_dataset(k, data=v)
                 with open(os.path.join(savedir, f"{runid}_params.yaml"), permission) as f:
-                    json.dump(self.result_parameters[runid], f, default= lambda x: x.tolist())
+                    json.dump(self.result_parameters[runid], f, default=lambda x: x.tolist())
             else:
                 print(f"skipping because {runid}/parameters already exists and overwrite set to False")
 

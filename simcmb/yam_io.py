@@ -75,14 +75,17 @@ class Ydict:
         else:
             print("not a valid attribute")
 
+    def cpars_to_dict(self, user_params_only=False):
+        if user_params_only:
+            diffdict = _nested_dict_diff(self.CAMBparams, self._all_params_dict["BASECAMBPARAMS"])
+            return {'FORCAMB': diffdict}
+        else:
+            return _cpars_to_dict(self.CAMBparams)
+
     def save_cpars(self, filename, save_user_params_only=False):
-        cparsdict = _cpars_to_dict(self.CAMBparams)
+        cparsdict = self.cpars_to_dict(user_params_only=save_user_params_only)
         with open(filename, "w") as f:
-            if save_user_params_only:
-                diffdict = _nested_dict_diff(cparsdict, self._all_params_dict["BASECAMBPARAMS"])
-                yaml.safe_dump(f, {'FORCAMB': diffdict})
-            else:
-                yaml.safe_dump(f, cparsdict)
+            yaml.safe_dump(f, cparsdict)
 
 
 def _strconvert(x):

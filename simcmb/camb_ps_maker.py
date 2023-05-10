@@ -123,7 +123,7 @@ class PS_Maker:
                 self.Ydict.update_val(keys[i], vector[i])
             _single_param_id = generate_runid()
             self.runids.append(_single_param_id)
-            self.result_parameters[_single_param_id] = cpars_to_dict(self.CAMBparams)
+            self.result_parameters[_single_param_id] = self.Ydict.cpars_to_dict()
             self.get_cls(_single_param_id)
 
     def savecls(self, out_name, sims_to_save_start=None, sims_to_save_end=None, permission='r+', overwrite=False):
@@ -148,7 +148,3 @@ class PS_Maker:
 def generate_runid(random_digits=6):
     _rint = np.random.randint(10**random_digits)
     return 'runid_'+dt.now().strftime('%y%m%d%H%M%S%f_')+str(_rint).zfill(random_digits)
-
-
-def cpars_to_dict(cpars):
-    return cpars

@@ -11,7 +11,6 @@ outfile_dir: "outfiles"
 noise_type: "white"
 noise_level: 5  # units: uK*arcmin
 beam_fwhm: 3  # units: arcmin
-l_step: 10
 extra_l: 300
 max_l_use: 10000  # max_l_use will differ from max_l and max_l_tensor by "extra_l" because
 # according to the CAMB documentation errors affect the last "100 or so" multipoles

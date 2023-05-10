@@ -72,8 +72,7 @@ class PS_Maker:
 
         # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_lens_potential_cls
         pp, pt, pe = results.get_lens_potential_cls(raw_cl=self.normalize_cls)[:self.max_l_use + 1].T
-        l_step = self.UserParams['l_step'] if 'l_step' in self.UserParams else 1
-        lvals = range(2, self.max_l_use + 1, l_step)
+        lvals = range(self.max_l_use + 1)
 
         outdict = {
             'l': lvals,

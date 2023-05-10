@@ -72,10 +72,10 @@ class Yobj:
             setattr(self.CAMBparams, attr, new_val)
         elif (len(attr_split) == 2) and (hasattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1])):
             setattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1], new_val)
-        # elif attr in self._all_params_dict['USERPARAMS']:
-        self._all_params_dict['USERPARAMS'][attr] = new_val
-        # else:
-        #     print("not a valid attribute")
+        elif attr in self._all_params_dict['USERPARAMS']:
+            self._all_params_dict['USERPARAMS'][attr] = new_val
+        else:
+            print("not a valid attribute")
 
     def cpars_to_dict(self, user_params=True):
         cpd = _cpars_to_dict(self.CAMBparams)

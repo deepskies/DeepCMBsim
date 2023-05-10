@@ -4,6 +4,7 @@ import numpy as np
 from datetime import datetime as dt
 from simcmb import noise
 import h5py
+from collections.abc import Iterable
 
 """
 Code to create an array of power spectra from CAMB based on a yaml file
@@ -101,50 +102,37 @@ class PS_Maker:
         else:
             return outdict
 
-    def loop_sims(self):
-        # old version, only for r and Alens:
-        # for rr in self.Ydict.rs: #for par in self.Ydict['pass parameter'] - use itertools.product!
-        #     self.CAMBparams.InitPower.r = rr
-        #     for aa in self.Ydict.As:
-        #         self.CAMBparams.Alens = aa
-        #         cpars_cur = self.CAMBparams
-        #         if overwrite:
-        #             outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
-        #             savecls(outdict, os.path.join(self._outdir, namestr))#replace this with something other than save!
-        #         else:
-        #             namestr = self.get_namestr(cpars_cur)
-        #             if sum([namestr in x for x in os.listdir(self._outdir)])==0:
-        #                 outdict, namestr = self.get_cls(cpars_cur), self.get_namestr(cpars_cur)
-        #                 savecls(outdict, os.path.join(self._outdir, namestr))
+    def loop_sims(self, user_params_only=False):
         iterables = self.UserParams['ITERABLES']
         keys, values = list(iterables.keys()), iterables.values()
         for vector in itertools.product(*values):
             for i in range(len(vector)):
                 self.Ydict.update_val(keys[i], vector[i])
-            _single_param_id = generate_runid()
+            _single_param_id = _generate_runid()
             self.runids.append(_single_param_id)
-            self.result_parameters[_single_param_id] = self.Ydict.cpars_to_dict()
+            self.result_parameters[_single_param_id] = self.Ydict.cpars_to_dict(user_params_only=user_params_only)
             self.get_cls(_single_param_id)
 
-    def savecls(self, out_name, sims_to_save_start=None, sims_to_save_end=None, permission='r+', overwrite=False):
-        if (sims_to_save_end is None) and (sims_to_save_start is None):
-            sims_to_save_start = 0
-            sims_to_save_end = len(all_sims)
+    def savecls(self, saveids=None, randomids=False, permission='r+', overwrite=False):
+        if saveids is not None:
+            if type(saveids) == int:
+                saveids = np.random.choice(range(len(self.runids)), saveids, replace=False) if randomids else self.runids[:saveids]
+            elif isinstance(saveids, Iterable):
+                saveids = [self.runids[x] for x in saveids]
+            else:
+                saveids = self.runids
 
-        with h5py.File(out_name + '.h5', permission) as f:
-            for i in range(sims_to_save_start, sims_to_save_end):
-                for runid in self.runids:
-                    if True:  # someday perform a check to see if results with these parameters have already been run
-                        f.create_dataset(f"{runid}/parameters", data=self.result_parameters[runid])
-                        f.create_dataset(f"{runid}/results", data=self.results[runid])
-                    else:
-                        if overwrite:
-                            f.create_dataset(f"{runid}/parameters", data=self.result_parameters[runid])
-                            f.create_dataset(f"{runid}/results", data=self.results[runid])
-                        else:
-                            print(f"skipping because {runid}/parameters already exists and overwrite set to False")
+        for runid in saveids:
+            if True or overwrite:  # todo check to see if results with these parameters have already been run
+                with h5py.File(f"{runid}_results.h5", permission) as f:
+                    for k, v in self.results[runid]:
+                        f.create_dataset(k, data=v)
+                with open(f"{runid}_params.yaml", permission) as f:
+                    yaml.safe_dump(f, self.result_parameters[runid])
+            else:
+                print(f"skipping because {runid}/parameters already exists and overwrite set to False")
 
 
-def generate_runid(random_digits=6):
+def _generate_runid(random_digits=6):
     _rint = np.random.randint(10**random_digits)
     return 'runid_'+dt.now().strftime('%y%m%d%H%M%S%f_')+str(_rint).zfill(random_digits)

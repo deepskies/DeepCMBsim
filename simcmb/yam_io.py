@@ -96,7 +96,6 @@ def _strconvert(x):
 
 
 def _cpars_to_dict(cambparams_instance):
-
     _long_str = str(cambparams_instance)
     _long_str_lines = re.split("\\n", _long_str)[1:]  # first entry is just 'class: <CAMBparams>'
     outer_dict = {}
@@ -113,14 +112,12 @@ def _cpars_to_dict(cambparams_instance):
                 i += 1
                 if _long_str_lines[i][:3] == '   ':
                     _line3 = re.split("=", _long_str_lines[i])
-                    inner_dict[_line3[0].replace(" ", "")] = _strconvert(_line3[1]) if "None" not in _line3[
-                        1] else "~"
+                    inner_dict[_line3[0].replace(" ", "")] = _strconvert(_line3[1]) if "None" not in _line3[1] else "~"
                 else:
                     i -= 1
                     break
             outer_dict[_line.replace(" ", "")] = inner_dict
         i += 1
-
     return outer_dict
 
 

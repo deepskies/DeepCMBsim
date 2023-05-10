@@ -5,7 +5,8 @@ import re
 from collections.abc import Iterable
 import os
 
-def set_camb_attr(cambparams_instance, x, y):
+
+def _set_camb_attr(cambparams_instance, x, y):
     try:
         setattr(cambparams_instance, x, y)
     except TypeError:  # this is possible because some CAMBparams attributes have depth 2
@@ -16,7 +17,7 @@ def set_camb_attr(cambparams_instance, x, y):
                 continue
 
 
-def _quick_yaml_load(infile = None):
+def _quick_yaml_load(infile=None):
     if infile is None:
         return {}
     else:
@@ -26,23 +27,23 @@ def _quick_yaml_load(infile = None):
 
 class Ydict:
     def __init__(self,
-                 user_config=os.path.join( os.path.dirname(__file__), "settings", "user_config.yaml"),
-                 base_config=os.path.join( os.path.dirname(__file__), "settings", "base_config.yaml")):
+                 user_config=os.path.join(os.path.dirname(__file__), "settings", "user_config.yaml"),
+                 base_config=os.path.join(os.path.dirname(__file__), "settings", "base_config.yaml")):
 
         self._all_params_dict = {
-            'USERPARAMS' : _quick_yaml_load(user_config),
-            'BASECAMBPARAMS' : _quick_yaml_load(base_config)
+            'USERPARAMS': _quick_yaml_load(user_config),
+            'BASECAMBPARAMS': _quick_yaml_load(base_config)
         }
 
         self.CAMBparams = camb.CAMBparams()  # creates a base CAMBparams instance
 
         for x, y in self._all_params_dict['BASECAMBPARAMS'].items():  # get set first (potentially overwritten later)
-            set_camb_attr(self.CAMBparams, x, y)
+            _set_camb_attr(self.CAMBparams, x, y)
 
-        if len(self._all_params_dict['USERPARAMS'])>0:
+        if len(self._all_params_dict['USERPARAMS']) > 0:
             try:
                 for x, y in self._all_params_dict['USERPARAMS']['FORCAMB'].items():
-                    set_camb_attr(self.CAMBparams, x, y)
+                    _set_camb_attr(self.CAMBparams, x, y)
             except KeyError:
                 print("nothing overwriting `base_config.yaml`")
             try:
@@ -74,46 +75,60 @@ class Ydict:
         else:
             print("not a valid attribute")
 
-    def cpars_to_dict(self):
-        _long_str = str(self.CAMBparams)
-        _long_str_lines = re.split("\\n", _long_str)[1:]  # first entry is just 'class: <CAMBparams>'
-        outer_dict = {}
-        i = 0
-        while i < len(_long_str_lines):
-            _line = _long_str_lines[i]
-            _line2 = re.split("=", _line)
-            if len(_line2)>1:
-                outer_dict[_line2[0].replace(" ", "")] = strconvert(_line2[1])
-            elif len(_line)>1:
-                _line = re.split(":", _line)[0]
-                inner_dict = {}
-                while i < len(_long_str_lines):
-                    i += 1
-                    if _long_str_lines[i][:3] == '   ':
-                        _line3 = re.split("=", _long_str_lines[i])
-                        inner_dict[_line3[0].replace(" ", "")] = strconvert(_line3[1]) if "None" not in _line3[1] else "~"
-                    else:
-                        break
-                outer_dict[_line.replace(" ", "")] = inner_dict
-            i += 1
-
-        return outer_dict
-
-
-    def save_cpars(self, filename):
-        _long_str = str(self.CAMBparams)
-        _long_str_lines = re.split("\\n", _long_str)[1:]  # first entry is just 'class: <CAMBparams>'
+    def save_cpars(self, filename, save_user_params_only=False):
+        cparsdict = _cpars_to_dict(self.CAMBparams)
         with open(filename, "w") as f:
-            for _line in _long_str_lines:
-                _line = re.split("<", _line.replace("=", ":"))[0]
-                if len(re.split(":", _line))==2 and 'None' in re.split(":", _line)[1]:
-                    _line = _line.replace("None", " ")
-                f.write(_line)
-                f.write("\n")
+            if save_user_params_only:
+                diffdict = _nested_dict_diff(cparsdict, self._all_params_dict["BASECAMBPARAMS"])
+                yaml.safe_dump(f, {'FORCAMB': diffdict})
+            else:
+                yaml.safe_dump(f, cparsdict)
 
 
-def strconvert(x):
+def _strconvert(x):
     try:
         return eval(x)
     except NameError:
-        return x.replace(" ","")
+        return x.replace(" ", "")
+
+
+def _cpars_to_dict(cambparams_instance):
+
+    _long_str = str(cambparams_instance)
+    _long_str_lines = re.split("\\n", _long_str)[1:]  # first entry is just 'class: <CAMBparams>'
+    outer_dict = {}
+    i = 0
+    while i < len(_long_str_lines):
+        _line = _long_str_lines[i]
+        _line2 = re.split("=", _line)
+        if len(_line2) > 1:
+            outer_dict[_line2[0].replace(" ", "")] = _strconvert(_line2[1])
+        elif len(_line) > 1:
+            _line = re.split(":", _line)[0]
+            inner_dict = {}
+            while i < len(_long_str_lines):
+                i += 1
+                if _long_str_lines[i][:3] == '   ':
+                    _line3 = re.split("=", _long_str_lines[i])
+                    inner_dict[_line3[0].replace(" ", "")] = _strconvert(_line3[1]) if "None" not in _line3[
+                        1] else "~"
+                else:
+                    i -= 1
+                    break
+            outer_dict[_line.replace(" ", "")] = inner_dict
+        i += 1
+
+    return outer_dict
+
+
+def _nested_dict_diff(d1, d2):
+    diff_dict = {}
+    for k, v in d1.items():
+        if type(v) == dict:
+            for k_inner, v_inner in v.items():
+                if d2[k][k_inner] != v_inner:
+                    diff_dict[k] = {k_inner: v_inner}
+        else:
+            if d2[k] != v:
+                diff_dict[k] = v
+    return diff_dict

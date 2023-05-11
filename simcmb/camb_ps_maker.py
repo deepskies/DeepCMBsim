@@ -37,7 +37,7 @@ class PS_Maker:
         self.TT_units = self.UserParams['TT_units']
 
         # initialize empty dictionaries to be filled in later with results and their params
-        self.runids = []
+        self.loop_runids = []
         self.results = {}
         self.result_parameters = {}
 
@@ -105,20 +105,20 @@ class PS_Maker:
             for i in range(len(vector)):
                 self.Yobj.update_val(keys[i], vector[i])
             _single_param_id = _generate_runid()
-            self.runids.append(_single_param_id)
+            self.loop_runids.append(_single_param_id)
             self.get_cls(save_to_dict=_single_param_id, user_params=user_params)
 
     def savecls(self, savedir=os.path.join(os.path.dirname(__file__), "outfiles"),
                 saveids=None, randomids=False, permission='w', overwrite=False):
         if saveids is not None:
             if type(saveids) == int:
-                saveids = np.random.choice(range(len(self.runids)), saveids, replace=False) if randomids else self.runids[:saveids]
+                saveids = np.random.choice(range(len(self.loop_runids)), saveids, replace=False) if randomids else self.loop_runids[:saveids]
             elif isinstance(saveids, Iterable):
-                saveids = [self.runids[x] for x in saveids]
+                saveids = [self.loop_runids[x] for x in saveids]
             else:
                 saveids = saveids
         else:
-            saveids = self.runids
+            saveids = self.loop_runids
 
         for runid in saveids:
             if True or overwrite:  # todo check to see if results with these parameters have already been run

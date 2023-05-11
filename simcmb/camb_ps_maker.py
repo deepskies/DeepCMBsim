@@ -94,7 +94,7 @@ class PS_Maker:
 
         if save_to_dict is not None:
             self.results[save_to_dict] = outdict
-            self.result_parameters[save_to_dict] = self.Yobj.cpars_to_dict(user_params=user_params)
+            self.result_parameters[save_to_dict] = self.Yobj.cpars_to_dict(user_params=user_params).copy()
         else:
             return outdict
 
@@ -104,8 +104,6 @@ class PS_Maker:
         for vector in itertools.product(*values):
             for i in range(len(vector)):
                 self.Yobj.update_val(keys[i], vector[i])
-                self.CAMBparams = self.Yobj.CAMBparams
-                self.UserParams = self.Yobj.UserParams
             _single_param_id = _generate_runid()
             self.runids.append(_single_param_id)
             self.get_cls(save_to_dict=_single_param_id, user_params=user_params)

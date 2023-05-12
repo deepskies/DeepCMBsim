@@ -36,15 +36,16 @@ class Yobj:
 
         self.CAMBparams = camb.CAMBparams()  # creates a base CAMBparams instance
 
-        for x, y in self._all_params_dict['BASECAMBPARAMS'].items():  # get set first (potentially overwritten later)
+        if 'FORCAMB' in self._all_params_dict['USERPARAMS']:  # overwrite BASECAMBPARAMS if anything specified
+            self._all_params_dict['BASECAMBPARAMS'] = {
+                **self._all_params_dict['BASECAMBPARAMS'],
+                **self._all_params_dict['USERPARAMS']
+            }
+
+        for x, y in self._all_params_dict['BASECAMBPARAMS'].items():
             _set_camb_attr(self.CAMBparams, x, y)
 
         if len(self._all_params_dict['USERPARAMS']) > 0:
-            try:
-                for x, y in self._all_params_dict['USERPARAMS']['FORCAMB'].items():
-                    _set_camb_attr(self.CAMBparams, x, y)
-            except KeyError:
-                print("nothing overwriting `base_config.yaml`")
             try:
                 for x, y in self._all_params_dict['USERPARAMS']['ITERABLES'].items():
                     if isinstance(y, Iterable) and len(y) <= 3 and type(y[-1]) == int:
@@ -61,7 +62,6 @@ class Yobj:
 
         self.dict_iterables = self._all_params_dict['USERPARAMS']['ITERABLES']  # make this more easily accessible
 
-        self.out_dict = {}
 
     def update_val(self, attr, new_val):
         attr_split = re.split("\.", attr)

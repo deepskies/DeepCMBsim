@@ -17,12 +17,9 @@ def _set_camb_attr(cambparams_instance, x, y):
                 continue
 
 
-def _quick_yaml_load(infile=None):
-    if infile is None:
-        return {}
-    else:
-        with open(infile, "r") as f:
-            return yaml.safe_load(f)
+def _quick_yaml_load(infile):
+    with open(infile, "r") as f:
+        return yaml.safe_load(f)
 
 
 class Yobj:

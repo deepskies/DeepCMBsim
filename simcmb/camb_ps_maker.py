@@ -104,12 +104,15 @@ class PS_Maker:
         for vector in itertools.product(*values):
             for i in range(len(vector)):
                 self.Yobj.update_val(keys[i], vector[i])
-            _single_param_id = _generate_runid()
+            _single_param_id = _generate_run_id()
             self.loop_runids.append(_single_param_id)
             self.get_cls(save_to_dict=_single_param_id, user_params=user_params)
 
-    def savecls(self, savedir=os.path.join(os.path.dirname(__file__), "outfiles"),
+    def savecls(self, savedir=os.path.join(os.getcwd(), "outfiles"),
                 saveids=None, randomids=False, permission='w', overwrite=False):
+        if not os.path.exists(os.path.join(os.getcwd(), "outfiles")):
+            print("making local directory `./outfiles`")
+            os.mkdir(os.path.join(os.getcwd(), "outfiles"))
         if saveids is not None:
             if type(saveids) == int:
                 saveids = np.random.choice(range(len(self.loop_runids)), saveids, replace=False) if randomids else self.loop_runids[:saveids]
@@ -120,17 +123,17 @@ class PS_Maker:
         else:
             saveids = self.loop_runids
 
-        for runid in saveids:
+        for run_id in saveids:
             if True or overwrite:  # todo check to see if results with these parameters have already been run
-                with h5py.File(os.path.join(savedir, f"{runid}_results.h5"), permission) as f:
-                    for k, v in self.results[runid].items():
+                with h5py.File(os.path.join(savedir, f"{run_id}_results.h5"), permission) as f:
+                    for k, v in self.results[run_id].items():
                         f.create_dataset(k, data=v)
-                with open(os.path.join(savedir, f"{runid}_params.yaml"), permission) as f:
-                    json.dump(self.result_parameters[runid], f, default=lambda x: x.tolist())
+                with open(os.path.join(savedir, f"{run_id}_params.yaml"), permission) as f:
+                    json.dump(self.result_parameters[run_id], f, default=lambda x: x.tolist())
             else:
-                print(f"skipping because {runid}/parameters already exists and overwrite set to False")
+                print(f"skipping because {run_id}/parameters already exists and overwrite set to False")
 
 
-def _generate_runid(random_digits=6):
+def _generate_run_id(random_digits=6):
     _rint = np.random.randint(10**random_digits)
     return 'runid_'+dt.now().strftime('%y%m%d%H%M%S%f_')+str(_rint).zfill(random_digits)

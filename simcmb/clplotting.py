@@ -7,6 +7,7 @@ class flatmap(object):
         self.seed, self.cl_dict = seed, cl_dict # random seed if applicable, dictionary of CLs if you want to include them
         self.reso = self.degrees / self.pixels
         self.nx, self.lx, self.lx_rad, self.ny, self.ly, self.ly_rad = [int(self.pixels), int(self.degrees), self.degrees*np.pi/180]*2
+        self.ticks, self.labels = np.linspace(0, self.pixels, self.degrees+1), np.arange(0, self.degrees+1, dtype=float)
 
     def _flatmap(self, cl_array, spin_array = [0], seed = None):
         seed = seed if seed is not None else self.seed

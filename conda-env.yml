@@ -2,11 +2,8 @@
 
 name: deepskies-simcmb
 
-channels:
-     - conda-forge/osx-64
-
 dependencies:
-     - python
+     - python=3.9
      - numpy
      - matplotlib
      - camb
@@ -15,6 +12,3 @@ dependencies:
      - jupyter
      - pip
      - ipython
-
-variables:
-     - CONDA_SUBDIR: osx-64

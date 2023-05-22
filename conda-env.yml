@@ -1,0 +1,16 @@
+# draft conda environment file for simcmb
+
+name: deepskies-simcmb
+
+channels:
+     - conda-forge
+
+dependencies:
+     - python
+     - numpy
+     - matplotlib
+     - camb
+     - h5py
+     - pymaster
+     - jupyter
+     - pip

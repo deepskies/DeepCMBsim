@@ -24,7 +24,7 @@ If you use this code in your research, please cite our JOSS paper. Please also m
 
 ## contributing
 
-If you would like to contribute, please be in touch with the [authors](#contact)
+If you would like to contribute, please open a new [issue](https://github.com/deepskies/simcmb/issues), and/or be in touch with the [authors](#contact)
 
 ## contact
 

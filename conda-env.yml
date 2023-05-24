@@ -1,0 +1,14 @@
+# draft conda environment file for simcmb
+
+name: deepskies-simcmb
+
+dependencies:
+     - python=3.9
+     - numpy
+     - matplotlib
+     - camb
+     - h5py
+     - namaster
+     - jupyter
+     - pip
+     - ipython

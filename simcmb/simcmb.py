@@ -4,6 +4,6 @@ import sys
 
 infile = sys.argv[1]
 
-Ydict = yam_io.Yobj(infile)
+Ydict = yam_io.config_obj(infile)
 
 PS_maker = camb_ps_maker.PS_Maker(Ydict)

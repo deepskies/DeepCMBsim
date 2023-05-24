@@ -22,7 +22,7 @@ def _quick_yaml_load(infile):
         return yaml.safe_load(f)
 
 
-class Yobj:
+class config_obj:
     def __init__(
             self,
             user_config=os.path.join(os.path.dirname(__file__), "settings", "user_config.yaml"),

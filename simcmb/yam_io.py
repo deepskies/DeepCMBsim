@@ -39,7 +39,7 @@ class config_obj:
         if 'FORCAMB' in self._all_params_dict['USERPARAMS']:  # overwrite BASECAMBPARAMS if anything specified
             self._all_params_dict['BASECAMBPARAMS'] = {
                 **self._all_params_dict['BASECAMBPARAMS'],
-                **self._all_params_dict['USERPARAMS']
+                **self._all_params_dict['USERPARAMS']['FORCAMB']
             }
 
         for x, y in self._all_params_dict['BASECAMBPARAMS'].items():
@@ -67,10 +67,14 @@ class config_obj:
         attr_split = re.split("\.", attr)
         if (len(attr_split) == 1) and (hasattr(self.CAMBparams, attr)):
             setattr(self.CAMBparams, attr, new_val)
+            print(f"updated {attr} in CAMBparams")
         elif (len(attr_split) == 2) and (hasattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1])):
             setattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1], new_val)
+            print(f"updated {attr} in CAMBparams")
         elif attr in self._all_params_dict['USERPARAMS']:
             self._all_params_dict['USERPARAMS'][attr] = new_val
+            self.UserParams[attr] = new_val
+            print(f"updated {attr} in UserParams")
         else:
             print("not a valid attribute")
 

@@ -1,7 +1,9 @@
 import pymaster as nmt
 import numpy as np
 from matplotlib import pyplot as plt
-class flatmap(object):
+
+
+class flatmap:
     def __init__(self, pixels, degrees, seed = -1, cl_dict = None):
         self.pixels, self.degrees = pixels, degrees  # pixels on each side, degrees on each side
         self.seed, self.cl_dict = seed, cl_dict # random seed if applicable, dictionary of CLs if you want to include them

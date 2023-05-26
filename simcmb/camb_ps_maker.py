@@ -19,10 +19,11 @@ class PS_Maker:
     main object for getting power spectra for set parameters, or looped over values of arbitrary
     numbers of parameters
     """
-    def __init__(self, in_Yobj):  # read in the yaml such that in_Ydict is Ydict(infile)
-        self.Yobj = in_Yobj
-        self.CAMBparams = self.Yobj.CAMBparams
-        self.UserParams = self.Yobj.UserParams
+    def __init__(self, in_config_obj):  # read in the yaml such that in_Ydict is Ydict(infile)
+        self.cpars_to_dict = lambda args, kwargs: in_config_obj.cpars_to_dict(*args, **kwargs)
+        self.update_val = lambda k, v: in_config_obj.update_val(k, v)
+        self.CAMBparams = in_config_obj.CAMBparams
+        self.UserParams = in_config_obj.UserParams
 
         # according to the CAMB documentation, errors affect the last "100 or so" multipoles
         self.max_l_use = min(self.UserParams['max_l_use'], noise.max_multipole(self.UserParams['beam_fwhm']))
@@ -94,7 +95,7 @@ class PS_Maker:
 
         if save_to_dict is not None:
             self.results[save_to_dict] = outdict
-            self.result_parameters[save_to_dict] = self.Yobj.cpars_to_dict(user_params=user_params).copy()
+            self.result_parameters[save_to_dict] = self.cpars_to_dict(user_params=user_params).copy()
         else:
             return outdict
 
@@ -103,7 +104,7 @@ class PS_Maker:
         keys, values = list(iterables.keys()), iterables.values()
         for vector in itertools.product(*values):
             for i in range(len(vector)):
-                self.Yobj.update_val(keys[i], vector[i])
+                self.update_val(keys[i], vector[i])
             _single_param_id = _generate_run_id()
             self.loop_runids.append(_single_param_id)
             self.get_cls(save_to_dict=_single_param_id, user_params=user_params)

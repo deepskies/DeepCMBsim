@@ -14,7 +14,7 @@ includes noise, loops, and option to update parameters
 """
 
 
-class PS_Maker:
+class CAMBPowerSpectrum:
     """
     main object for getting power spectra for set parameters, or looped over values of arbitrary
     numbers of parameters

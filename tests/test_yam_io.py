@@ -2,7 +2,7 @@
 tests yam_io.py
 """
 
-from simcmb.yam_io import config_obj
+from simcmb.params_io import config_obj
 
 
 def test_update_val():

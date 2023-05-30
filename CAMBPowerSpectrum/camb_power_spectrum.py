@@ -20,7 +20,7 @@ class PS_Maker:
     numbers of parameters
     """
     def __init__(self, in_config_obj):  # read in the yaml such that in_Ydict is Ydict(infile)
-        self.cpars_to_dict = lambda args, kwargs: in_config_obj.cpars_to_dict(*args, **kwargs)
+        self.cpars_to_dict = lambda args, kwargs: in_config_obj.camb_params_to_dict(*args, **kwargs)
         self.update_val = lambda k, v: in_config_obj.update_val(k, v)
         self.CAMBparams = in_config_obj.CAMBparams
         self.UserParams = in_config_obj.UserParams

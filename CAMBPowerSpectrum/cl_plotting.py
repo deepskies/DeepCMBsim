@@ -1,6 +1,5 @@
 import pymaster as nmt
 import numpy as np
-from matplotlib import pyplot as plt
 
 
 class flatmap:

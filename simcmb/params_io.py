@@ -78,8 +78,8 @@ class config_obj:
         else:
             print("not a valid attribute")
 
-    def cpars_to_dict(self, user_params=True):
-        cpd = _cpars_to_dict(self.CAMBparams)
+    def camb_params_to_dict(self, user_params=True):
+        cpd = _camb_params_to_dict(self.CAMBparams)
         if user_params:
             self._all_params_dict['USERPARAMS']['FORCAMB'] = _nested_dict_diff(cpd, self._all_params_dict["BASECAMBPARAMS"])
             return self._all_params_dict['USERPARAMS']
@@ -94,7 +94,7 @@ def _strconvert(x):
         return x.replace(" ", "")
 
 
-def _cpars_to_dict(cambparams_instance):
+def _camb_params_to_dict(cambparams_instance):
     _long_str = str(cambparams_instance)
     _long_str_lines = re.split("\\n", _long_str)[1:]  # first entry is just 'class: <CAMBparams>'
     outer_dict = {}

@@ -4,7 +4,7 @@ tests clplotting.py
 
 import pymaster as nmt
 import numpy as np
-from simcmb.clplotting import flatmap
+from simcmb.cl_plotting import flatmap
 
 
 def test_flatmap_scalar():

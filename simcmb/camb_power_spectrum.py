@@ -14,13 +14,13 @@ includes noise, loops, and option to update parameters
 """
 
 
-class PS_Maker:
+class CAMBPowerSpectrum:
     """
     main object for getting power spectra for set parameters, or looped over values of arbitrary
     numbers of parameters
     """
     def __init__(self, in_config_obj):  # read in the yaml such that in_Ydict is Ydict(infile)
-        self.cpars_to_dict = lambda args, kwargs: in_config_obj.cpars_to_dict(*args, **kwargs)
+        self.camb_params_to_dict = lambda user_params: in_config_obj.camb_params_to_dict(user_params=user_params)
         self.update_val = lambda k, v: in_config_obj.update_val(k, v)
         self.CAMBparams = in_config_obj.CAMBparams
         self.UserParams = in_config_obj.UserParams
@@ -95,7 +95,7 @@ class PS_Maker:
 
         if save_to_dict is not None:
             self.results[save_to_dict] = outdict
-            self.result_parameters[save_to_dict] = self.cpars_to_dict(user_params=user_params).copy()
+            self.result_parameters[save_to_dict] = self.camb_params_to_dict(user_params=user_params).copy()
         else:
             return outdict
 

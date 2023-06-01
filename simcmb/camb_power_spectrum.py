@@ -9,8 +9,8 @@ from collections.abc import Iterable
 import os
 
 """
-Code to create an array of power spectra from CAMB based on a yaml file
-includes noise, loops, and option to update parameters
+Code to create an array of power spectra from CAMB based on a yaml file.
+Requires a config_obj instance.
 """
 
 
@@ -19,7 +19,14 @@ class CAMBPowerSpectrum:
     main object for getting power spectra for set parameters, or looped over values of arbitrary
     numbers of parameters
     """
-    def __init__(self, in_config_obj):  # read in the yaml such that in_Ydict is Ydict(infile)
+    def __init__(self, in_config_obj):
+        """
+        Parameters
+        ----------
+        in_config_obj: config_obj instance
+            Object that posesses a CAMBparams instance, a UserParams dict, a camb_params_to_dict method,
+            and an update_val method
+        """
         self.camb_params_to_dict = lambda user_params: in_config_obj.camb_params_to_dict(user_params=user_params)
         self.update_val = lambda k, v: in_config_obj.update_val(k, v)
         self.CAMBparams = in_config_obj.CAMBparams
@@ -43,6 +50,17 @@ class CAMBPowerSpectrum:
         self.result_parameters = {}
 
     def get_noise(self):
+        """
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        np.ndarray
+            provides noise for the TT power spectrum and the polarization power spectra;
+            shape is (2, max_l_use)
+        """
         if self.UserParams['noise_type'] == 'white':
             t_noise = noise.white_noise(self.UserParams['noise_level'], self.UserParams['beam_fwhm'], self.max_l_use,
                                         TT=True)
@@ -56,6 +74,22 @@ class CAMBPowerSpectrum:
             return np.zeros((2, self.max_l_use))
 
     def get_cls(self, save_to_dict=None, user_params=True):
+        """
+        central method of CAMBPowerSpectrum, used to obtain power spectra for a given config file
+
+        Parameters
+        ----------
+        save_to_dict : str, optional
+            if specified, will populate the self.results dictionary with the output dictionary
+        user_params : bool, default True
+            if save_to_dict is not None, then user_params=True saves only the CAMBparams that differ
+            from the base_config in the result_parameters dict
+
+        Returns
+        -------
+        dict
+            dictionary of values of l, clTT, clEE, clBB, clTE, clPP, clPT, clPE
+        """
         if bool(self.UserParams["verbose"]):
             time_start = dt.now()
 
@@ -100,6 +134,21 @@ class CAMBPowerSpectrum:
             return outdict
 
     def loop_sims(self, user_params=True):
+        """
+        method for looping get_cls() over a range of values specified in the user_config.yaml file
+        automatically saves results to self.results and parameters to self.result_parameters using
+        unique identifiers
+
+        Parameters
+        ----------
+        user_params : bool, default True
+            if save_to_dict is not None, then user_params=True saves only the CAMBparams that differ
+            from the base_config in the result_parameters dict
+
+        Returns
+        -------
+        None
+        """
         iterables = self.UserParams['ITERABLES']
         keys, values = list(iterables.keys()), iterables.values()
         for vector in itertools.product(*values):
@@ -111,6 +160,26 @@ class CAMBPowerSpectrum:
 
     def savecls(self, savedir=os.path.join(os.getcwd(), "outfiles"),
                 saveids=None, randomids=False, permission='w', overwrite=False):
+        """
+        method for saving power spectra
+
+        Parameters
+        ----------
+        savedir : str, default CWD/outfiles
+            directory into which results will be saved
+        saveids : array_like, optional
+            IDs to save. Can specify total number to save, specific runs to save, or (default) will save all
+        randomids : bool, default False
+            if saveids is an int, this will choose int random runs to save
+        permission : {'w', 'a', 'w-', 'r'}, default 'w'
+            permission settings for the file. The default behavior allows to overwrite an existing file.
+        overwrite : bool, default False
+            currently not being used
+
+        Returns
+        -------
+        None
+        """
         if not os.path.exists(os.path.join(os.getcwd(), "outfiles")):
             print("making local directory `./outfiles`")
             os.mkdir(os.path.join(os.getcwd(), "outfiles"))
@@ -136,5 +205,18 @@ class CAMBPowerSpectrum:
 
 
 def _generate_run_id(random_digits=6):
+    """
+    generate unique run ID including a random number whose length can be specified
+
+    Parameters
+    ----------
+    random_digits : int, default 6
+        number of random digits (including leading zeros) in the random number
+
+    Returns
+    -------
+    str
+        'runid_' plues year, month, day, hour, minute, second, microsecond, plus random number
+    """
     _rint = np.random.randint(10**random_digits)
     return 'runid_'+dt.now().strftime('%y%m%d%H%M%S%f_')+str(_rint).zfill(random_digits)

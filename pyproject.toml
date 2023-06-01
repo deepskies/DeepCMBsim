@@ -15,8 +15,9 @@ numpy = "^1.24.3"
 pytest = "^7.3.1"
 pytest-cov = "^4.0.0"
 
+pymaster = { version = "^1.5", optional = true }
 [tool.poetry.extras]
-pymaster = "^1.5"
+pymaster = ["pymaster"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

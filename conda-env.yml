@@ -11,4 +11,3 @@ dependencies:
      - namaster
      - jupyter
      - pip
-     - ipython

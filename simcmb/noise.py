@@ -44,6 +44,11 @@ def white_noise(noise_uKarcmin, beamfwhm_arcmin, lmax, TT=True, units_uK = True)
         TT is True if the noise level is the noise of the temperature map, which is standard
     units_uK : bool, default True
         whether or not to return the units in microKelvin (default) or dimensionless
+
+    Returns
+    -------
+    np.ndarray
+        provides noise for the TT power spectrum or polarization power spectra in an array of length lmax+1
     """
     noise_uKarcmin = noise_uKarcmin if TT else noise_uKarcmin * np.sqrt(2)
     noise_uKarcmin = noise_uKarcmin if units_uK else noise_uKarcmin / 2.72548e6

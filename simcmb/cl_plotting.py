@@ -1,9 +1,61 @@
+"""
+optional module for plotting flat-sky map realizations of power spectra
+"""
+
 import pymaster as nmt
 import numpy as np
 
 
 class flatmap:
+    """
+    map-making class
+    Attributes
+    ----------
+    pixels : int
+        number of pixels on each side of a flat map
+    degrees : float
+        number of degrees on each side of a flat map
+    seed : int, default -1
+        random seed to provide `namaster` (potential bug in `namaster`, does not always have the
+        behavior that is described at https://namaster.readthedocs.io/en/latest/pymaster.html
+    cl_dict : dict, optional
+        dictionary of power spectra. Necessary to use the primary method of this class.
+        If not specified, can still use the hidden mapping function.
+    reso : float
+        resolution of the maps, given by degrees/pixels
+    nx, ny : int
+        number of pixels on the x and y axes (fixed to be the same for now, but generalizable)
+    lx, ly:
+        number of degrees on x and y axes (fixed to be the same for now, but generalizable)
+    lx_rad, ly_rad : float
+        number of radians on x and y axes (fixed to be the same for now, but generalizable)
+    ticks : np.ndarray
+        tickmark locations for annotating maps
+    lables : np.ndarray
+        tickmark labels for annotating maps
+
+    Methods
+    -------
+    flatmap
+        function for plotting a realization of a flat-sky map with the given number of pixels
+        representing the given size of sky patch based on the provided power spectra
+    """
     def __init__(self, pixels, degrees, seed = -1, cl_dict = None):
+        """
+        initialize a map-making class
+        Parameters
+        ----------
+        pixels : int
+            number of pixels on each side of a flat map
+        degrees : float
+            number of degrees on each side of a flat map
+        seed : int, default -1
+            random seed to provide `namaster` (potential bug in `namaster`, does not always have the
+            behavior that is described at https://namaster.readthedocs.io/en/latest/pymaster.html
+        cl_dict : dict, optional
+            dictionary of power spectra. Necessary to use the primary method of this class.
+            If not specified, can still use the hidden mapping function.
+        """
         self.pixels, self.degrees = pixels, degrees  # pixels on each side, degrees on each side
         self.seed, self.cl_dict = seed, cl_dict # random seed if applicable, dictionary of CLs if you want to include them
         self.reso = self.degrees / self.pixels
@@ -15,6 +67,23 @@ class flatmap:
         return nmt.synfast_flat(self.nx, self.ny, self.lx_rad, self.ly_rad, np.array([x for x in cl_array]), spin_array, seed = seed)
 
     def flatmap(self, maps_out, seed = None):
+        """
+
+        Parameters
+        ----------
+        maps_out : ["T", "E", "B", "P", "TT", "EE", "BB", "TE", "PP", "PT", "PE", "clTT", "clEE", "clBB", "clTE", "clPP", "clPT", "clPE", "TEB", "TQU"]
+            map(s) that you would like to produce
+        seed : int, optional
+            random seed to provide `namaster` (potential bug in `namaster`, does not always have the
+            behavior that is described at https://namaster.readthedocs.io/en/latest/pymaster.html
+        Returns
+        -------
+        np.ndarray
+            returns entries of flat maps in a (Nm, Np, Np) array, where Nm is the number of maps
+            (equal to 1 if maps_out is in ["T", "E", "B", "P", "TT", "EE", "BB", "TE", "PP", "PT",
+            "PE", "clTT", "clEE", "clBB", "clTE", "clPP", "clPT", "clPE"] and equal to 3 if
+            maps_out is "TEB" or "TQU"]) and Np is the number of pixels
+        """
         if self.cl_dict is not None:
             if len(maps_out)==1 and maps_out in ["T", "E", "B", "P"]:
                 cl_arr, spin_arr = np.array([self.cl_dict["cl"+maps_out*2]]), [0]

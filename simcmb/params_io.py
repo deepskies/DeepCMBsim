@@ -7,6 +7,19 @@ import os
 
 
 def _set_camb_attr(cambparams_instance, x, y):
+    """
+    sets cambparams_instance.x equal to y
+    Parameters
+    ----------
+    cambparams_instance : CAMBparams instance
+        this must be instantiated by calling CAMB
+    x : str
+        this must be an attribute of cambparams_instance. May not be nested
+        (i.e., cannot contain a ".")
+    y
+        value to set cambparams_instance.x, which can be a float, int, bool, str, or list,
+        depending on context
+    """
     try:
         setattr(cambparams_instance, x, y)
     except TypeError:  # this is possible because some CAMBparams attributes have depth 2
@@ -18,17 +31,52 @@ def _set_camb_attr(cambparams_instance, x, y):
 
 
 def _quick_yaml_load(infile):
+    """
+    simply load yaml files without remembering the syntax or yaml.safe_load command
+    Parameters
+    ----------
+    infile : str
+        path to yaml file that you wish to load
+    Returns
+    -------
+    dict
+        a "safe load" dictionary version of infile
+    """
     with open(infile, "r") as f:
         return yaml.safe_load(f)
 
 
 class config_obj:
+    """
+    configuration object that is used to obtain power spectra
+
+    Attributes
+    ----------
+    CAMBparams : CAMBparams instance
+        this is necessary for CAMB to return results
+    UserParams : dict
+        a dictionary of values that the user has specified (smaller than the corresponding
+        dictionary that would be necessary to fully specify a CAMBparams instance)
+    dict_iterables : dict
+        a dictionary of all of the iterables that the user has specified, which will be made
+        available to loop over in camb_power_spectrum.CAMBPowerSpectrum
+    """
     def __init__(
             self,
             user_config=os.path.join(os.path.dirname(__file__), "settings", "user_config.yaml"),
             base_config=os.path.join(os.path.dirname(__file__), "settings", "base_config.yaml")
     ):
+        """
 
+        Parameters
+        ----------
+        user_config : str
+            path to yaml file that contains params the user wants to change
+        base_config : str
+            path to yaml file that contains baseline cosmological parameters that reflect the best-fit
+            2018 Planck cosmology and which instruct CAMB to calculate useful observables. A full list
+            is available at https://camb.readthedocs.io/en/latest/model.html
+        """
         self._all_params_dict = {
             'USERPARAMS': _quick_yaml_load(user_config),
             'BASECAMBPARAMS': _quick_yaml_load(base_config)
@@ -64,6 +112,15 @@ class config_obj:
 
 
     def update_val(self, attr, new_val):
+        """
+        updates values in the config_obj
+        Parameters
+        ----------
+        attr : str
+            may either be an attribute of the CAMBparams instance _or_ a key of the UserParams dictionary
+        new_val : float
+            new value that you wish attr to take on
+        """
         attr_split = re.split("\.", attr)
         if (len(attr_split) == 1) and (hasattr(self.CAMBparams, attr)):
             setattr(self.CAMBparams, attr, new_val)
@@ -79,6 +136,18 @@ class config_obj:
             print("not a valid attribute")
 
     def camb_params_to_dict(self, user_params=True):
+        """
+        used for saving parameters from runs
+        Parameters
+        ----------
+        user_params : bool, default True
+            specify whether you wish to return UserParms dict only or a full dictionary capable of fully
+            populating a CAMBparams instance from scratch
+        Returns
+        -------
+        dict
+            dictionary of parameters that can be used to reproduce a run
+        """
         cpd = _camb_params_to_dict(self.CAMBparams)
         if user_params:
             self._all_params_dict['USERPARAMS']['FORCAMB'] = _nested_dict_diff(cpd, self._all_params_dict["BASECAMBPARAMS"])

@@ -2,7 +2,8 @@
 tests clplotting.py
 """
 
-import pymaster as nmt
+import pytest
+nmt = pytest.importorskip("pymaster") # skips tests if pymaster not installed
 import numpy as np
 from simcmb.cl_plotting import flatmap
 

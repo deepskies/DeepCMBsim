@@ -1,15 +1,17 @@
 ---
 title: 'Title Title Title Title'
+
 tags:
   - Python
   - astronomy
   - cosmology
   - cosmic microwave background
   - gravitational lensing
-authors:
+
+  - authors:
   - name: Samuel McDermott
     orcid: 0000-0001-5513-1938
-    equal-contrib: true
+    equal-contrib: false
     affiliation: "1" # (Multiple affiliations must be quoted)
   - name: Camille Avestruz
     orcid: 0000-0000-0000-0000
@@ -52,13 +54,14 @@ bibliography: paper.bib
 [//]: # (5. We create a simple interface for building simulations around camb and namaster.)
 
 The cosmic microwave background (CMB) radiation is a direct link to the earliest moments after the birth of the Universe.
-Patterns in the CMB can tell us about the contents of the Universe at otherwise-inaccessible times and at otherwise-unacheivable energies.
+The CMB is nearly, but not exactly, homogeneous, with small temperature anistropies that deviate from the average temperature at the level of a part in a million.
+Patterns in the anisotropies in the CMB can tell us about the contents of the Universe at otherwise-inaccessible times and at otherwise-unacheivable energies.
 
-This information is encoded in the two-point correlation function of the hotspots of CMB, or its "power spectrum".
-However, this information can be difficult to access.
+Because the patterns in the anisotropy field are derived from underlying physical mechanisms that are described by an almost perfectly Gaussian random process, most of the information content of the CMB is encoded in the two-point correlation function of the hotspots of CMB, or its "power spectrum".
+However, because the magnitude of temperature anisotropies are at the level of a part in a million, as mentioned above, the information encoded in the CMB can be difficult to access.
 Sources of confusion which can interfere with our ability to observe the CMB include: _lensing_ from structures that grow during the evolution of the universe; _noise_ from foregrounds; and _beam_ artifacts from the instruments we use to perform the measurements.
 
-The `simcmb` package combines these sources of noise in a straightforward and accessible framework that enables fast and realistic simulation of the CMB with lensing and noise.
+The `simcmb` package combines these physical process and these sources of noise in a straightforward and accessible framework that enables fast and realistic simulation of the CMB with lensing and noise.
 
 
 # Statement of need
@@ -70,20 +73,25 @@ The `simcmb` package combines these sources of noise in a straightforward and ac
 
 Most CMB lensing simulators are not user-friendly.
 The `simcmb` package emphasizes user-friendliness by enabling simple variable specification in a `yaml` file, including noise, beam, and lensing.
-The `yaml` file contents are used to specify a `CAMBparams` instance which is used by the `CAMB` package `[@Lewis:1999bs; @Howlett:2012mh]` to generate a power spectrum.
-
-The noise level and beam shape are specified in the `yaml` file.
-The power spectrum of the noise follows the form in `[@Hu:2001kj]` and relies on the assumption of statistical independence in the Stokes parameters `[@Knox:1995dq; @Zaldarriaga:1996xe]`.
-This noisy, lensed power spectrum output is made available to the user.
-
-Optionally, the user can make maps from the power spectra, which is done internally by `simcmb` by calling `namaster` `[@Alonso:2018jzx]`.
-We provide intuitive functionality for single maps or for a set of (T,E,B) or (T,Q,U) maps, assuming parity conservation on the sky.
-
+This will be the first part of a simulation-based inference module for parameter estimation.
 
 # Workflow
 
 ![Example workflow for the `simcmb` package.\label{fig:workflow}](ex_workflow.png)
-The package workflow is demonstrated in \autoref{fig:workflow}.
+The package workflow is demonstrated in \autoref{fig:workflow}. Two `yaml` files are provided.
+One of these files (`base_config.yaml`) contains a number of parameters that allow reproduction of the Planck 2018 cosmology `[@Planck:2018vyg]`, and the user does not need to interact with or edit it at all for basic functionality.
+The `user_config.yaml` file is the main interface for the user, into which different cosmological parameters and experimental descriptions can be entered.
+These `yaml` files contents are used to specify a `CAMBparams` instance, which is accessed as an attribute of a `config_obj` class in the `params_io` module.
+
+The noise level and beam shape are also specified in the `yaml` file.
+The power spectrum of the noise follows the form in `[@Hu:2001kj]` and relies on the assumption of statistical independence in the Stokes parameters `[@Knox:1995dq; @Zaldarriaga:1996xe]`.
+
+The primary physics module is `camb_power_spectrum`, which defines the `CAMBPowerSpectrum` class.
+This calls `CAMB` `[@Lewis:1999bs; @Howlett:2012mh]`
+This noisy, lensed power spectrum output is made available to the user.
+
+Optionally, the user can make maps from the power spectra, which is done internally by `simcmb` by calling `namaster` `[@Alonso:2018jzx]`.
+We provide intuitive functionality for single maps or for a set of (T,E,B) or (T,Q,U) maps, assuming parity conservation on the sky.
 
 
 # Citations

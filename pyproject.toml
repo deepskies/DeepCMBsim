@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "DeepCMBSim"
+name = "deepcmbsim"
 version = "0.1.0"
-description = "fastsim code for CMB with lensing and noise"
+description = "code for fast simulations of the CMB with lensing and noise"
 authors = ["Samuel D. McDermott"]
 license = "LICENSE.txt"
 

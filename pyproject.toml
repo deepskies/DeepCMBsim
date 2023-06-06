@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "simcmb"
+name = "DeepCMBSim"
 version = "0.1.0"
 description = "fastsim code for CMB with lensing and noise"
 authors = ["Samuel D. McDermott"]

@@ -61,7 +61,7 @@ Because the patterns in the anisotropy field are derived from underlying physica
 However, because the magnitude of temperature anisotropies are at the level of a part in a million, as mentioned above, the information encoded in the CMB can be difficult to access.
 Sources of confusion which can interfere with our ability to observe the CMB include: _lensing_ from structures that grow during the evolution of the universe; _noise_ from foregrounds; and _beam_ artifacts from the instruments we use to perform the measurements.
 
-The `simcmb` package combines these physical process and these sources of noise in a straightforward and accessible framework that enables fast and realistic simulation of the CMB with lensing and noise.
+The `DeepCMBsim` package combines these physical process and these sources of noise in a straightforward and accessible framework that enables fast and realistic simulation of the CMB with lensing and noise.
 
 
 # Statement of need
@@ -71,15 +71,16 @@ The `simcmb` package combines these physical process and these sources of noise 
 [//]: # (3. a bridge to more complex simulations and provides a benchmark for those more high-fidelity simulations)
 [//]: # (4. How does this compare in middle level of detail with pixell and others)
 
-Most CMB lensing simulators are not user-friendly.
-The `simcmb` package emphasizes user-friendliness by enabling simple variable specification in a `yaml` file, including noise, beam, and lensing.
-This will be the first part of a simulation-based inference module for parameter estimation.
+We present a user-friendly interface to create fast CMB lensing simulations, potentially for applications with Simulation Based Inference analysis approaches.
+The `DeepCMBsim` package emphasizes user-friendliness by enabling simple variable specification in a `yaml` file, including baseline examples that incorporate noise, beam-size, and lensing effects.
+This will be the first part of a simulation-based inference module for estimation of cosmological parameters.
 
 # Workflow
 
-![Example workflow for the `simcmb` package.\label{fig:workflow}](ex_workflow.png)
-The package workflow is demonstrated in \autoref{fig:workflow}. Two `yaml` files are provided.
-One of these files (`base_config.yaml`) contains a number of parameters that allow reproduction of the Planck 2018 cosmology `[@Planck:2018vyg]`, and the user does not need to interact with or edit it at all for basic functionality.
+![Example workflow for the `DeepCMBsim` package.\label{fig:workflow}](ex_workflow.png)
+The package workflow is demonstrated in \autoref{fig:workflow}. Two `yaml` files are provided in `simcmb/settings`.
+One of these files (`base_config.yaml`) contains a number of parameters that allow reproduction of the Planck 2018 cosmology `[@Planck:2018vyg]`.
+The user does not need to interact with or edit it for basic functionality, but it specifies a number of parameters necessary for correct `CAMB` functionality.
 The `user_config.yaml` file is the main interface for the user, into which different cosmological parameters and experimental descriptions can be entered.
 These `yaml` files contents are used to specify a `CAMBparams` instance, which is accessed as an attribute of a `config_obj` class in the `params_io` module.
 
@@ -90,8 +91,10 @@ The primary physics module is `camb_power_spectrum`, which defines the `CAMBPowe
 This calls `CAMB` `[@Lewis:1999bs; @Howlett:2012mh]`
 This noisy, lensed power spectrum output is made available to the user.
 
-Optionally, the user can make maps from the power spectra, which is done internally by `simcmb` by calling `namaster` `[@Alonso:2018jzx]`.
+Optionally, the user can make maps from the power spectra, which is done internally by `DeepCMBsim` by calling `namaster` `[@Alonso:2018jzx]`.
 We provide intuitive functionality for single maps or for a set of (T,E,B) or (T,Q,U) maps, assuming parity conservation on the sky.
+
+We provide an example notebook in `notebooks/simcmb_example.ipynb` which demonstrates core package functionality.
 
 
 # Citations

@@ -1,4 +1,4 @@
-# `simcmb`
+# `DeepCMBsim`
 
 Code for producing realistic simulations of the CMB with noise and lensing capabilities.
 
@@ -8,7 +8,7 @@ This code relies on `camb` to generate power spectra and (optionally) `namaster`
 
 We provide an environment specification file for `conda` or `mamba` users at `conda-env.yml`. With `conda`, an environment is created with `conda env create -f conda-env.yml`. With `micromamba` the `env` is omitted and a new environment is instead created with `micromamba create -f conda-env.yml`. If you have a newer Mac with Apple Silicon (eg, M1 or M2 chip) you may have issues with `namaster` (which is an extra). If you use `conda` or `mamba` for managing packages, you will need to follow the trick described [here](https://conda-forge.org/docs/user/tipsandtricks.html#installing-apple-intel-packages-on-apple-silicon). For example, with the `yml` file provided, the entire command to create the new environment on Apple Silicon with micromamba is `CONDA_SUBDIR=osx-64 micromamba create -f conda-env.yml`. As far as we are aware, this is only an issue on new Macs, and will only arise for users who wish to include mapping functionality in the package. 
 
-From the top-level directory, you can do `pip install .` for a normal install, or `pip install -E pymaster .` to include pymaster.
+From the top-level directory, you can do `pip install .` for a normal install, or `pip install .  pymaster` to include pymaster.
 
 ## Usage
 

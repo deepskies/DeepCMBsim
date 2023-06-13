@@ -77,7 +77,7 @@ This will be the first part of a simulation-based inference module for estimatio
 
 # Workflow
 
-![Example workflow for the `DeepCMBsim` package.\label{fig:workflow}](ex_workflow.png)
+![Example workflow for the `DeepCMBsim` package.\label{fig:workflow}](ex_workflow.pdf)
 The package workflow is demonstrated in \autoref{fig:workflow}. Two `yaml` files are provided in `simcmb/settings`.
 One of these files (`base_config.yaml`) contains a number of parameters that allow reproduction of the Planck 2018 cosmology `[@Planck:2018vyg]`.
 The user does not need to interact with or edit it for basic functionality, but it specifies a number of parameters necessary for correct `CAMB` functionality.

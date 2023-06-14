@@ -11,31 +11,32 @@ tags:
   - authors:
   - name: Samuel McDermott
     orcid: 0000-0001-5513-1938
-    equal-contrib: false
     affiliation: "1" # (Multiple affiliations must be quoted)
   - name: Camille Avestruz
     orcid: 0000-0000-0000-0000
-    equal-contrib: true
-    affiliation: "1, 2" # (Multiple affiliations must be quoted
+    affiliation: 3 # (Multiple affiliations must be quoted
   - name: Brian Nord
     orcid: 0000-0000-0000-0000
-    equal-contrib: true
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
   - name: Humna Awan
     orcid: 0000-0000-0000-0000
-    equal-contrib: true
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
+    affiliation: 3 # (Multiple affiliations must be quoted)
+  - name: Samantha Usman
+    orcid: 0000-0000-0000-0000
+    affiliation: 1 # (Multiple affiliations must be quoted)
+  - name: Ashia Livaudais-Lewis
+    orcid: 0000-0000-0000-0000
+    affiliation: 2 # (Multiple affiliations must be quoted)
   - name: Maggie Voetberg
     orcid: 0000-0000-0000-0000
-    equal-contrib: true
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
+    affiliation: 2 # (Multiple affiliations must be quoted)
 
 affiliations:
  - name: University of Chicago Department of Astronomy and Astrophysics
    index: 1
- - name: Affil 2
+ - name: Fermilab
    index: 2
- - name: Affil 3
+ - name: University of Michigan
    index: 3
 date: 13 August 2023
 bibliography: paper.bib

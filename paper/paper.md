@@ -1,5 +1,5 @@
 ---
-title: 'Title Title Title Title'
+title: 'DeepCMBSim'
 
 tags:
   - Python
@@ -38,21 +38,13 @@ affiliations:
    index: 2
  - name: University of Michigan
    index: 3
-date: 13 August 2023
+date: 14 June 2023
 bibliography: paper.bib
 
 
 ---
 
-[//]: # (based on: https://joss.theoj.org/papers/10.21105/joss.00388)
-
 # Summary
-
-[//]: # (1. Cosmic microwave background and lensing)
-[//]: # (2. CAMB)
-[//]: # (3. Fast, so that it can make lots and lots at multiple levels of fidelity.)
-[//]: # (4. Useful for computational experiments with machine learning and SBI)
-[//]: # (5. We create a simple interface for building simulations around camb and namaster.)
 
 The cosmic microwave background (CMB) radiation is a direct link to the earliest moments after the birth of the Universe.
 The CMB is nearly, but not exactly, homogeneous, with small temperature anistropies that deviate from the average temperature at the level of a part in a million.
@@ -66,11 +58,6 @@ The `DeepCMBsim` package combines these physical process and these sources of no
 
 
 # Statement of need
-
-[//]: # (1. Most CMB lensing simulators are not use-friendly and don't easily )
-[//]: # (2. needed to study B-modes and the effects of additional physics, like different kinds of noise)
-[//]: # (3. a bridge to more complex simulations and provides a benchmark for those more high-fidelity simulations)
-[//]: # (4. How does this compare in middle level of detail with pixell and others)
 
 We present a user-friendly interface to create fast CMB lensing simulations, potentially for applications with Simulation Based Inference analysis approaches.
 The `DeepCMBsim` package emphasizes user-friendliness by enabling simple variable specification in a `yaml` file, including baseline examples that incorporate noise, beam-size, and lensing effects.
@@ -97,14 +84,6 @@ We provide intuitive functionality for single maps or for a set of (T,E,B) or (T
 
 We provide an example notebook in `notebooks/simcmb_example.ipynb` which demonstrates core package functionality.
 
-
-# Citations
-1. deeplenstronomy
-2. pixell
-3. camb
-4. webcmb?
-5. namaster
-6. 
 
 # Acknowledgements
 

@@ -8,7 +8,7 @@ tags:
   - cosmic microwave background
   - gravitational lensing
 
-  - authors:
+authors:
   - name: Samuel McDermott
     orcid: 0000-0001-5513-1938
     affiliation: "1" # (Multiple affiliations must be quoted)

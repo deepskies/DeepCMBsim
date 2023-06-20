@@ -2,7 +2,7 @@ import itertools
 import camb
 import numpy as np
 from datetime import datetime as dt
-from simcmb import noise
+from deepcmbsim import noise
 import h5py
 import json
 from collections.abc import Iterable
@@ -33,7 +33,7 @@ class CAMBPowerSpectrum:
         self.UserParams = in_config_obj.UserParams
 
         # according to the CAMB documentation, errors affect the last "100 or so" multipoles
-        self.max_l_use = min(self.UserParams['max_l_use'], noise.max_multipole(self.UserParams['beam_fwhm']))
+        self.max_l_use = min(self.UserParams['max_l_use'], noise.max_multipole(self.UserParams['beamfwhm_arcmin']))
         self.max_l_calc = int(self.max_l_use + self.UserParams['extra_l'])
         self.CAMBparams.max_l = self.max_l_calc
         self.CAMBparams.max_l_tensor = self.max_l_calc
@@ -62,9 +62,9 @@ class CAMBPowerSpectrum:
             shape is (2, max_l_use)
         """
         if self.UserParams['noise_type'] == 'white':
-            t_noise = noise.white_noise(self.UserParams['noise_level'], self.UserParams['beam_fwhm'], self.max_l_use,
+            t_noise = noise.white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
                                         TT=True)
-            eb_noise = noise.white_noise(self.UserParams['noise_level'], self.UserParams['beam_fwhm'], self.max_l_use,
+            eb_noise = noise.white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
                                          TT=False)
             return t_noise, eb_noise
         elif self.UserParams['noise_type'] is None:
@@ -187,7 +187,10 @@ class CAMBPowerSpectrum:
             if type(saveids) == int:
                 saveids = np.random.choice(range(len(self.loop_runids)), saveids, replace=False) if randomids else self.loop_runids[:saveids]
             elif isinstance(saveids, Iterable):
-                saveids = [self.loop_runids[x] for x in saveids]
+                if len(self.loop_runids) > 0:
+                    saveids = [self.loop_runids[x] for x in saveids]
+                else:
+                    saveids = list(self.results.keys())
             else:
                 saveids = saveids
         else:

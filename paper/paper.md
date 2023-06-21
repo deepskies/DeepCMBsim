@@ -9,35 +9,39 @@ tags:
   - gravitational lensing
 
 authors:
-  - name: Samuel McDermott
+  - name: Samuel D. McDermott
     orcid: 0000-0001-5513-1938
-    affiliation: "1" # (Multiple affiliations must be quoted)
-  - name: Camille Avestruz
-    orcid: 0000-0000-0000-0000
-    affiliation: 3 # (Multiple affiliations must be quoted
-  - name: Brian Nord
-    orcid: 0000-0000-0000-0000
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
+    affiliation: 1
+  - name: M. Voetberg
+    orcid: 0009-0005-2715-4709
+    affiliation: 2
   - name: Humna Awan
-    orcid: 0000-0000-0000-0000
-    affiliation: 3 # (Multiple affiliations must be quoted)
+    orcid: 0000-0003-2296-7717
+    affiliation: 3
+  - name: Camille Avestruz
+    orcid: 0000-0001-8868-0810
+    affiliation: 3
   - name: Samantha Usman
-    orcid: 0000-0000-0000-0000
-    affiliation: 1 # (Multiple affiliations must be quoted)
+    orcid: 0000-0003-0918-7185
+    affiliation: 1
   - name: Ashia Livaudais-Lewis
-    orcid: 0000-0000-0000-0000
-    affiliation: 2 # (Multiple affiliations must be quoted)
-  - name: Maggie Voetberg
-    orcid: 0000-0000-0000-0000
-    affiliation: 2 # (Multiple affiliations must be quoted)
+    orcid: 0000-0003-3734-335X
+    affiliation: 2
+  - name: Brian Nord
+    orcid: 0000-0001-6706-8972
+    affiliation: "1, 2, 4, 5" # (Multiple affiliations must be quoted)
 
 affiliations:
  - name: University of Chicago Department of Astronomy and Astrophysics
    index: 1
- - name: Fermilab
+ - name: Fermilab Scientific Computing Division
    index: 2
  - name: University of Michigan
    index: 3
+ - name: University of Chicago Kavli Institute for Cosmological Physics
+   index: 4
+ - name: MIT Laboratory for Nuclear Science
+   index: 5
 date: 14 June 2023
 bibliography: paper.bib
 

@@ -3,8 +3,8 @@ tests camb_ps_maker.py
 """
 
 import numpy as np
-from simcmb.params_io import config_obj
-from simcmb.camb_power_spectrum import CAMBPowerSpectrum
+from deepcmbsim.params_io import config_obj
+from deepcmbsim.camb_power_spectrum import CAMBPowerSpectrum
 
 
 def test_get_noise():

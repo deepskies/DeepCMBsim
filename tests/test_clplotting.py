@@ -5,7 +5,7 @@ tests clplotting.py
 import pytest
 nmt = pytest.importorskip("pymaster") # skips tests if pymaster not installed
 import numpy as np
-from simcmb.cl_plotting import flatmap
+from deepcmbsim.cl_plotting import flatmap
 
 
 def test_flatmap_scalar():

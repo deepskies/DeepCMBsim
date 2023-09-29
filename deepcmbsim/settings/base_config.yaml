@@ -141,6 +141,7 @@ Do21cm : False
 transfer_21cm_cl : False
 Log_lvalues : False
 use_cl_spline_template : True
+min_l_logl_sampling : 5000
 SourceWindows : []
 CustomSources:
   num_custom_sources : 0

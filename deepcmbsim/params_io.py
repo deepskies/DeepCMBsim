@@ -192,11 +192,14 @@ def _camb_params_to_dict(cambparams_instance):
 def _nested_dict_diff(d1, d2):
     diff_dict = {}
     for k, v in d1.items():
-        if type(v) == dict:
-            for k_inner, v_inner in v.items():
-                if d2[k][k_inner] != v_inner:
-                    diff_dict[k] = {k_inner: v_inner}
+        if k in d2.keys():
+            if type(v) == dict:
+                for k_inner, v_inner in v.items():
+                    if d2[k][k_inner] != v_inner:
+                        diff_dict[k] = {k_inner: v_inner}
+            else:
+                if d2[k] != v:
+                    diff_dict[k] = v
         else:
-            if d2[k] != v:
-                diff_dict[k] = v
+            diff_dict[k] = v
     return diff_dict

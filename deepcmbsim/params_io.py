@@ -111,7 +111,7 @@ class config_obj:
         self.dict_iterables = self._all_params_dict['USERPARAMS']['ITERABLES']  # make this more easily accessible
 
 
-    def update_val(self, attr, new_val):
+    def update_val(self, attr, new_val, verbose=True):
         """
         updates values in the config_obj
         Parameters
@@ -124,14 +124,17 @@ class config_obj:
         attr_split = re.split("\.", attr)
         if (len(attr_split) == 1) and (hasattr(self.CAMBparams, attr)):
             setattr(self.CAMBparams, attr, new_val)
-            print(f"updated {attr} in CAMBparams")
+            if verbose:
+                print(f"updated {attr} in CAMBparams to {new_val}")
         elif (len(attr_split) == 2) and (hasattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1])):
             setattr(getattr(self.CAMBparams, attr_split[0]), attr_split[1], new_val)
-            print(f"updated {attr} in CAMBparams")
+            if verbose:
+                print(f"updated {attr} in CAMBparams to {new_val}")
         elif attr in self._all_params_dict['USERPARAMS']:
             self._all_params_dict['USERPARAMS'][attr] = new_val
             self.UserParams[attr] = new_val
-            print(f"updated {attr} in UserParams")
+            if verbose:
+                print(f"updated {attr} in UserParams to {new_val}")
         else:
             print("not a valid attribute")
 

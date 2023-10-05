@@ -28,9 +28,11 @@ class CAMBPowerSpectrum:
             and an update_val method
         """
         self.camb_params_to_dict = lambda user_params: in_config_obj.camb_params_to_dict(user_params=user_params)
-        self.update_val = lambda k, v: in_config_obj.update_val(k, v)
+
         self.CAMBparams = in_config_obj.CAMBparams
         self.UserParams = in_config_obj.UserParams
+
+        self.update_val = lambda k, v: in_config_obj.update_val(k, v, verbose = self.UserParams["verbose"])
 
         # according to the CAMB documentation, errors affect the last "100 or so" multipoles
         self.max_l_use = min(self.UserParams['max_l_use'], noise.max_multipole(self.UserParams['beamfwhm_arcmin']))

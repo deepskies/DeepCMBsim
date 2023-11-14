@@ -64,15 +64,15 @@ class CAMBPowerSpectrum:
             shape is (2, max_l_use)
         """
         if self.UserParams['noise_type'] == 'white':
-            t_noise = noise.white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
-                                        TT=True)
-            eb_noise = noise.white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
-                                         TT=False)
+            t_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
+                                                 TT=True)
+            eb_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
+                                                  TT=False)
             return t_noise, eb_noise
         elif self.UserParams['noise_type'] is None:
             return np.zeros((2, self.max_l_use))
         else:
-            print("only white noise is currently implemented")
+            print("only detector white noise is currently implemented, via `noise_type = 'white'` in `user_config.yaml`")
             return np.zeros((2, self.max_l_use))
 
     def get_cls(self, save_to_dict=None, user_params=True):

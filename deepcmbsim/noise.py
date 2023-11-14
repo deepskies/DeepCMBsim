@@ -26,8 +26,9 @@ def max_multipole(beamfwhm_arcmin, additional_factor=3):
     """
     return 180 * 60 * additional_factor / beamfwhm_arcmin
 
-def white_noise(noise_uKarcmin, beamfwhm_arcmin, lmax, TT=True, units_uK = True):
+def detector_white_noise(noise_uKarcmin, beamfwhm_arcmin, lmax, TT=True, units_uK = True):
     """
+    describes white (no angular scale) noise from a detector
     implements Eq 8 of astro-ph/0111606 (Hu and Okamoto Astrophys.J. 574 (2002) 566-574)
     related ideas first in Knox 1995 astro-ph/9504054 for T only
     and in Seljak and Zaldarriaga 1996 astro-ph/9609170 for polarization

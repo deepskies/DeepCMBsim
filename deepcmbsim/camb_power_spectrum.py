@@ -63,7 +63,7 @@ class CAMBPowerSpectrum:
             provides noise for the TT power spectrum and the polarization power spectra;
             shape is (2, max_l_use)
         """
-        if self.UserParams['noise_type'] == 'white':
+        if self.UserParams['noise_type'] == 'detector-white':
             t_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
                                                  TT=True)
             eb_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
@@ -72,7 +72,7 @@ class CAMBPowerSpectrum:
         elif self.UserParams['noise_type'] is None:
             return np.zeros((2, self.max_l_use))
         else:
-            print("only detector white noise is currently implemented, via `noise_type = 'white'` in `user_config.yaml`")
+            print("only detector white noise is currently implemented, via `noise_type = 'detector-white'` in `user_config.yaml`")
             return np.zeros((2, self.max_l_use))
 
     def get_cls(self, save_to_dict=None, user_params=True):

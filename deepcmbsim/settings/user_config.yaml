@@ -8,7 +8,7 @@ verbose: 1
 normalize_cls: False #raw_cl – return Cl rather than l*(l+1)*Cl/2π (Cl alone is not conventional)
 TT_units: muK #return uK**2 units for the TT, EE, BB, TE Cls
 outfile_dir: "outfiles"
-noise_type: "white"
+noise_type: "detector-white"    # only option for now; adds detector white noise to the output; see noise.detector_white_noise for more details.
 noise_uKarcmin: 5  # noise level in uK*arcmin
 beamfwhm_arcmin: 3  # size of beam in arcmin
 extra_l: 300

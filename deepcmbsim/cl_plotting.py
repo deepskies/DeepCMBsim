@@ -15,8 +15,8 @@ class flatmap:
         number of pixels on each side of a flat map
     degrees : float
         number of degrees on each side of a flat map
-    seed : int, default -1
-        random seed to provide `namaster` (potential bug in `namaster`, does not always have the
+    namaster_seed : int, default -1
+        random namaster_seed to provide `namaster` (potential bug in `namaster`, does not always have the
         behavior that is described at https://namaster.readthedocs.io/en/latest/pymaster.html
     cl_dict : dict, optional
         dictionary of power spectra. Necessary to use the primary method of this class.
@@ -40,7 +40,7 @@ class flatmap:
         function for plotting a realization of a flat-sky map with the given number of pixels
         representing the given size of sky patch based on the provided power spectra
     """
-    def __init__(self, pixels, degrees, seed = -1, cl_dict = None):
+    def __init__(self, pixels, degrees, namaster_seed = -1, cl_dict = None):
         """
         initialize a map-making class
         Parameters
@@ -49,32 +49,32 @@ class flatmap:
             number of pixels on each side of a flat map
         degrees : float
             number of degrees on each side of a flat map
-        seed : int, default -1
-            random seed to provide `namaster` (potential bug in `namaster`, does not always have the
+        namaster_seed : int, default -1
+            random namaster_seed to provide `namaster` (potential bug in `namaster`, does not always have the
             behavior that is described at https://namaster.readthedocs.io/en/latest/pymaster.html
         cl_dict : dict, optional
             dictionary of power spectra. Necessary to use the primary method of this class.
             If not specified, can still use the hidden mapping function.
         """
         self.pixels, self.degrees = pixels, degrees  # pixels on each side, degrees on each side
-        self.seed, self.cl_dict = seed, cl_dict # random seed if applicable, dictionary of CLs if you want to include them
+        self.namaster_seed, self.cl_dict = namaster_seed, cl_dict # random namaster_seed if applicable, dictionary of CLs if you want to include them
         self.reso = self.degrees / self.pixels
         self.nx, self.lx, self.lx_rad, self.ny, self.ly, self.ly_rad = [int(self.pixels), int(self.degrees), self.degrees*np.pi/180]*2
         self.ticks, self.labels = np.linspace(0, self.pixels, self.degrees+1), np.arange(0, self.degrees+1, dtype=float)
 
-    def _flatmap(self, cl_array, spin_array = [0], seed = None):
-        seed = seed if seed is not None else self.seed
-        return nmt.synfast_flat(self.nx, self.ny, self.lx_rad, self.ly_rad, np.array([x for x in cl_array]), spin_array, seed = seed)
+    def _flatmap(self, cl_array, spin_array = [0], namaster_seed = None):
+        namaster_seed = namaster_seed if namaster_seed is not None else self.namaster_seed
+        return nmt.synfast_flat(self.nx, self.ny, self.lx_rad, self.ly_rad, np.array([x for x in cl_array]), spin_array, namaster_seed = namaster_seed)
 
-    def flatmap(self, maps_out, seed = None):
+    def flatmap(self, maps_out, namaster_seed = None):
         """
 
         Parameters
         ----------
         maps_out : ["T", "E", "B", "P", "TT", "EE", "BB", "TE", "PP", "PT", "PE", "clTT", "clEE", "clBB", "clTE", "clPP", "clPT", "clPE", "TEB", "TQU"]
             map(s) that you would like to produce
-        seed : int, optional
-            random seed to provide `namaster` (potential bug in `namaster`, does not always have the
+        namaster_seed : int, optional
+            random namaster_seed to provide `namaster` (potential bug in `namaster`, does not always have the
             behavior that is described at https://namaster.readthedocs.io/en/latest/pymaster.html
         Returns
         -------
@@ -98,6 +98,6 @@ class flatmap:
             else:
                 print("not a valid map specification")
                 return None
-            return self._flatmap(cl_arr, spin_arr, seed=seed)
+            return self._flatmap(cl_arr, spin_arr, namaster_seed=namaster_seed)
         else:
             print("if you don't want to restrict to a `cl_dict` dictionary, use `self._flatmap` instead")

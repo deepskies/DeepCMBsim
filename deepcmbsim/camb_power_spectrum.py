@@ -63,7 +63,7 @@ class CAMBPowerSpectrum:
             provides noise for the TT power spectrum and the polarization power spectra;
             shape is (2, max_l_use)
         """
-        if self.UserParams['noise_type'] == 'white':
+        if self.UserParams['noise_type'] == 'detector-white':
             t_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
                                                  TT=True)
             eb_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
@@ -72,7 +72,7 @@ class CAMBPowerSpectrum:
         elif self.UserParams['noise_type'] is None:
             return np.zeros((2, self.max_l_use))
         else:
-            print("only detector white noise is currently implemented, via `noise_type = 'white'` in `user_config.yaml`")
+            print("only detector white noise is currently implemented, via `noise_type = 'detector-white'` in `user_config.yaml`")
             return np.zeros((2, self.max_l_use))
 
     def get_cls(self, save_to_dict=None, user_params=True):
@@ -98,29 +98,51 @@ class CAMBPowerSpectrum:
         # main calculation: https://camb.readthedocs.io/en/latest/camb.html#camb.get_results
         results = camb.get_results(self.CAMBparams)
 
+        outdict = { 'l': range(self.max_l_use + 1) }
+        if self.UserParams['cls_to_output'] == 'all':
+            cls_needed = ['clTT', 'clEE', 'clBB', 'clTE', 'clPP', 'clPT', 'clPE']
+        else:
+            cls_needed = self.UserParams['cls_to_output']
+
         # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_total_cls
-        tt, ee, bb, te = results.get_total_cls(raw_cl=self.normalize_cls, CMB_unit=self.TT_units)[:self.max_l_use + 1].T
-        if self.UserParams['noise_type'] is not None:
-            _noise = self.get_noise()
-            tt += _noise[0]
-            ee += _noise[1]
-            bb += _noise[1]
-            te += _noise[1]
+        if ('clTT' in cls_needed) or ('clEE' in cls_needed) or ('clEB' in cls_needed) or ('clTE' in cls_needed):
+            # need to run things to get one/some/all of tt, ee, bb, te
+            tt, ee, bb, te = results.get_total_cls(raw_cl=self.normalize_cls, CMB_unit=self.TT_units)[:self.max_l_use + 1].T
+            # add noise
+            if self.UserParams['noise_type'] is not None:
+                _noise = self.get_noise()
+                tt += _noise[0]
+                ee += _noise[1]
+                bb += _noise[1]
+                te += _noise[1]
+            # now add to outdict
+            for key in ['clTT', 'clEE', 'clBB', 'clTE']:
+                if key in cls_needed:
+                    if key == 'clTT':
+                        outdict[key] = tt
+                    elif key == 'clEE':
+                        outdict[key] = ee
+                    elif key == 'clBB':
+                        outdict[key] = bb
+                    elif key == 'clTE':
+                        outdict[key] = te
+                    else:
+                        raise ValueError('somethings wrong.')
 
         # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_lens_potential_cls
-        pp, pt, pe = results.get_lens_potential_cls(raw_cl=self.normalize_cls)[:self.max_l_use + 1].T
-        lvals = range(self.max_l_use + 1)
-
-        outdict = {
-            'l': lvals,
-            'clTT': tt,
-            'clEE': ee,
-            'clBB': bb,
-            'clTE': te,
-            'clPP': pp,
-            'clPT': pt,
-            'clPE': pe
-        }
+        if ('clPP' in cls_needed) or ('clPT' in cls_needed) or ('clPE' in cls_needed):
+            pp, pt, pe = results.get_lens_potential_cls(raw_cl=self.normalize_cls)[:self.max_l_use + 1].T
+            # now add to outdict
+            for key in ['clPP', 'clPT', 'clPE']:
+                if key in cls_needed:
+                    if key == 'clPP':
+                        outdict[key] = pp
+                    elif key == 'clPT':
+                        outdict[key] = pt
+                    elif key == 'clPE':
+                        outdict[key] = pe
+                    else:
+                        raise ValueError('somethings wrong.')
 
         if bool(self.UserParams["verbose"]):
             time_end = dt.now()

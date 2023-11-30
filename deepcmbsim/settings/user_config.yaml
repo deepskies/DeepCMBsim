@@ -3,14 +3,18 @@ FORCAMB:  # these simply overwrite any values in BASECAMBPARAMS
 ITERABLES:  # these provide iterables that can overwrite their corresponding values in BASECAMBPARAMS in loop settings
   InitPower.r : [0.01, 0.1, 3]  # for nested CAMBparams attributes, use the dot structure
   Alens : [.8, 1.2, 3]
-seed: 0
+namaster_seed: 0   # seed for the map realization using namaster
 verbose: 1
 normalize_cls: False #raw_cl – return Cl rather than l*(l+1)*Cl/2π (Cl alone is not conventional)
 TT_units: muK #return uK**2 units for the TT, EE, BB, TE Cls
 outfile_dir: "outfiles"
-noise_type: "white"
+noise_type: "detector-white"    # only option for now; adds detector white noise to the output; see noise.detector_white_noise for more details.
 noise_uKarcmin: 5  # noise level in uK*arcmin
 beamfwhm_arcmin: 3  # size of beam in arcmin
 extra_l: 300
 max_l_use: 10000  # max_l_use will differ from max_l and max_l_tensor by "extra_l" because
 # according to the CAMB documentation errors affect the last "100 or so" multipoles
+# ---
+# decide on what to output; either 'all' or a subset list of
+# ['clTT', 'clEE', 'clBB', 'clTE', 'clPP', 'clPT', 'clPE']
+cls_to_output: 'all'

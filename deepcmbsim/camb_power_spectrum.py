@@ -105,7 +105,7 @@ class CAMBPowerSpectrum:
             cls_needed = self.UserParams['cls_to_output']
 
         # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_total_cls
-        if ('clTT' in cls_needed) or ('clEE' in cls_needed) or ('clEB' in cls_needed) or ('clTE' in cls_needed):
+        if ('clTT' in cls_needed) or ('clEE' in cls_needed) or ('clBB' in cls_needed) or ('clTE' in cls_needed):
             # need to run things to get one/some/all of tt, ee, bb, te
             tt, ee, bb, te = results.get_total_cls(raw_cl=self.normalize_cls, CMB_unit=self.TT_units)[:self.max_l_use + 1].T
             # add noise

@@ -146,6 +146,14 @@ class CAMBPowerSpectrum:
                     else:
                         raise ValueError('somethings wrong.')
 
+        # see if lmin is specified - if so, discard the ells < lmin
+        if self.UserParams['lmin'] != 0:
+            ell_inds = np.where(outdict['l'] >= self.UserParams['lmin'])[0]
+            if bool(self.UserParams["verbose"]):
+                print(f'## discarding {len(outdict["l"]) - len(ell_inds)} ells given lmin specification.')
+            for key in outdict.keys():
+                outdict[key] = outdict[key][ell_inds]
+
         if bool(self.UserParams["verbose"]):
             time_end = dt.now()
             print('from', dt.strftime(time_start, '%H:%M:%S.%f %P'), 'to', dt.strftime(time_end, '%H:%M:%S.%f %P'),

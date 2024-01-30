@@ -98,14 +98,16 @@ class CAMBPowerSpectrum:
         # main calculation: https://camb.readthedocs.io/en/latest/camb.html#camb.get_results
         results = camb.get_results(self.CAMBparams)
 
-        outdict = { 'l': range(self.max_l_use + 1) }
+        outdict = { 'l': np.arange(self.max_l_use+1) }
         if self.UserParams['cls_to_output'] == 'all':
             cls_needed = ['clTT', 'clEE', 'clBB', 'clTE', 'clPP', 'clPT', 'clPE']
         else:
             cls_needed = self.UserParams['cls_to_output']
+            if 'clEB' in cls_needed:
+                raise ValueError('camb does NOT output EB => it cant be in cls_to_output.')
 
         # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_total_cls
-        if ('clTT' in cls_needed) or ('clEE' in cls_needed) or ('clEB' in cls_needed) or ('clTE' in cls_needed):
+        if ('clTT' in cls_needed) or ('clEE' in cls_needed) or ('clBB' in cls_needed) or ('clTE' in cls_needed):
             # need to run things to get one/some/all of tt, ee, bb, te
             tt, ee, bb, te = results.get_total_cls(raw_cl=self.normalize_cls, CMB_unit=self.TT_units)[:self.max_l_use + 1].T
             # add noise
@@ -143,6 +145,14 @@ class CAMBPowerSpectrum:
                         outdict[key] = pe
                     else:
                         raise ValueError('somethings wrong.')
+
+        # see if lmin is specified - if so, discard the ells < lmin
+        if self.UserParams['lmin'] != 0:
+            ell_inds = np.where(outdict['l'] >= self.UserParams['lmin'])[0]
+            if bool(self.UserParams["verbose"]):
+                print(f'## discarding {len(outdict["l"]) - len(ell_inds)} ells given lmin specification.')
+            for key in outdict.keys():
+                outdict[key] = outdict[key][ell_inds]
 
         if bool(self.UserParams["verbose"]):
             time_end = dt.now()

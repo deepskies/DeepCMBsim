@@ -103,7 +103,7 @@ class CAMBPowerSpectrum:
             cls_needed = ['clTT', 'clEE', 'clBB', 'clTE', 'clPP', 'clPT', 'clPE']
         else:
             cls_needed = self.UserParams['cls_to_output']
-            if 'EB' in cls_needed:
+            if 'clEB' in cls_needed:
                 raise ValueError('camb does NOT output EB => it cant be in cls_to_output.')
 
         # https://camb.readthedocs.io/en/latest/results.html#camb.results.CAMBdata.get_total_cls

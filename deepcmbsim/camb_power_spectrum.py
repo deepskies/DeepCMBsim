@@ -98,7 +98,7 @@ class CAMBPowerSpectrum:
         # main calculation: https://camb.readthedocs.io/en/latest/camb.html#camb.get_results
         results = camb.get_results(self.CAMBparams)
 
-        outdict = { 'l': range(self.max_l_use + 1) }
+        outdict = { 'l': np.arange(self.max_l_use+1) }
         if self.UserParams['cls_to_output'] == 'all':
             cls_needed = ['clTT', 'clEE', 'clBB', 'clTE', 'clPP', 'clPT', 'clPE']
         else:

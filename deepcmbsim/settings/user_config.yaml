@@ -15,6 +15,10 @@ extra_l: 300
 max_l_use: 10000  # max_l_use will differ from max_l and max_l_tensor by "extra_l" because
 # according to the CAMB documentation errors affect the last "100 or so" multipoles
 # ---
+# decide on lmin: CAMB will still be called with lmin=0 but
+# you may specifiy lmin for the output spectra
+lmin: 0
+# ---
 # decide on what to output; either 'all' or a subset list of
 # ['clTT', 'clEE', 'clBB', 'clTE', 'clPP', 'clPT', 'clPE']
 cls_to_output: 'all'

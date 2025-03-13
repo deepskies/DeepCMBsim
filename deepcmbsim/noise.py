@@ -28,9 +28,9 @@ def max_multipole(beamfwhm_arcmin, additional_factor=3):
 
 def beam_effect(beamfwhm_arcmin, lmax):
     ells = np.arange(lmax + 1)
-    return np.exp(ells * (ells + 1) * (beamfwhm_arcmin * arcmin_to_rad)**2 / (8 * np.log(2)))
+    return np.exp(-ells * (ells + 1) * (beamfwhm_arcmin * arcmin_to_rad)**2 / (8 * np.log(2)))
 
-def detector_white_noise(noise_uKarcmin, beamfwhm_arcmin, lmax, TT=True, units_uK = True):
+def detector_white_noise(noise_uKarcmin, TT=True, units_uK = True):
     """
     describes white (no angular scale) noise from a detector
     implements Eq 8 of astro-ph/0111606 (Hu and Okamoto Astrophys.J. 574 (2002) 566-574)
@@ -57,5 +57,4 @@ def detector_white_noise(noise_uKarcmin, beamfwhm_arcmin, lmax, TT=True, units_u
     """
     noise_uKarcmin = noise_uKarcmin if TT else noise_uKarcmin * np.sqrt(2)
     noise_uKarcmin = noise_uKarcmin if units_uK else noise_uKarcmin / 2.72548e6
-    ells = np.arange(lmax+1)
     return (noise_uKarcmin * arcmin_to_rad) ** 2

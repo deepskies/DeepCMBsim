@@ -63,13 +63,13 @@ class CAMBPowerSpectrum:
             provides noise for the TT power spectrum and the polarization power spectra;
             shape is (2, max_l_use)
         """
-        if self.UserParams['noise_type'] == 'detector-white':
-            t_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
-                                                 TT=True)
-            eb_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], self.UserParams['beamfwhm_arcmin'], self.max_l_use,
-                                                  TT=False)
+        if ((self.UserParams['noise_type'] == 'detector-white') & (self.UserParams['noise_uKarcmin'] is not None)):
+            t_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], TT=True)
+            eb_noise = noise.detector_white_noise(self.UserParams['noise_uKarcmin'], TT=False)
             return t_noise, eb_noise
         elif self.UserParams['noise_type'] is None:
+            return np.zeros((2, self.max_l_use))
+        elif self.UserParams['noise_uKarcmin'] is None:
             return np.zeros((2, self.max_l_use))
         else:
             print("only detector white noise is currently implemented, via `noise_type = 'detector-white'` in `user_config.yaml`")
@@ -111,12 +111,12 @@ class CAMBPowerSpectrum:
             # need to run things to get one/some/all of tt, ee, bb, te
             tt, ee, bb, te = results.get_total_cls(raw_cl=self.normalize_cls, CMB_unit=self.TT_units)[:self.max_l_use + 1].T
             # add noise
-            if self.UserParams['noise_type'] is not None:
-                _noise = self.get_noise()
-                tt += _noise[0]
-                ee += _noise[1]
-                bb += _noise[1]
-                te += _noise[1]
+            # if ((self.UserParams['noise_type'] is not None) & (self.UserParams['noise_uKarcmin'] is not None)):
+            #     _noise = self.get_noise()
+            #     tt += _noise[0]
+            #     ee += _noise[1]
+            #     bb += _noise[1]
+            #     te += _noise[1]
             # now add to outdict
             for key in ['clTT', 'clEE', 'clBB', 'clTE']:
                 if key in cls_needed:
